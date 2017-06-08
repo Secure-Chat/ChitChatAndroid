@@ -63,7 +63,6 @@ class MessageDBHelper extends SQLiteOpenHelper {
     }
 
     void addMessage(String ip, String room, int id, String name, String message) {
-        deleteOldMessages();
         deleteMessage(ip, room, id);
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_TIME, (int) (System.currentTimeMillis() / 1000));
