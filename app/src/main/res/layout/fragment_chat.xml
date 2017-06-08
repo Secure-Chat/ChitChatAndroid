@@ -1,0 +1,45 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Message List -->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/messages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottom_bar"
+        android:layout_alignParentTop="true" />
+
+    <!-- Message Input and Send Button -->
+    <RelativeLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/primary"
+        android:padding="@dimen/padding_regular">
+
+        <EditText
+            android:id="@+id/message_box"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_toLeftOf="@+id/send_button"
+            android:layout_toStartOf="@+id/send_button"
+            android:hint="@string/chat_message_hint"
+            android:inputType="textAutoCorrect"
+            android:textColor="@color/accent"
+            android:textColorHint="@color/accent"/>
+
+        <Button
+            android:id="@+id/send_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:text="@string/chat_send"
+            android:textColor="@color/accent" />
+    </RelativeLayout>
+</RelativeLayout>
