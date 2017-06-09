@@ -69,12 +69,14 @@ public class DataTypes {
 
     public class ChatRoom {
         private String ip, room, nickname, password;
+        private int color;
 
-        ChatRoom(String ip, String room, String nickname, String password) {
+        ChatRoom(String ip, String room, String nickname, String password, int color) {
             this.ip = ip;
             this.room = room;
             this.nickname = nickname;
             this.password = password;
+            this.color = color;
         }
 
         public String getIP() {
@@ -91,6 +93,10 @@ public class DataTypes {
 
         public String getPassword() {
             return this.password;
+        }
+
+        public int getColor() {
+            return this.color;
         }
     }
 

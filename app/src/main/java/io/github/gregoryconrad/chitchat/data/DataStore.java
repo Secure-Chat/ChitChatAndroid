@@ -12,8 +12,8 @@ public class DataStore {
     public static ArrayList<String> getIPs(Context context) {
         ChatsDBHelper chatsDB = new ChatsDBHelper(context);
         ArrayList<String> returnVal = new ArrayList<>();
-        for (HashMap<String, String> curr : chatsDB.getChats()) {
-            if (returnVal.indexOf(curr.get("IP")) < 0) returnVal.add(curr.get("IP"));
+        for (DataTypes.ChatRoom curr : chatsDB.getChats()) {
+            if (returnVal.indexOf(curr.getIP()) < 0) returnVal.add(curr.getIP());
         }
         chatsDB.close();
         return returnVal;
@@ -22,9 +22,8 @@ public class DataStore {
     public static ArrayList<DataTypes.ChatRoom> getRoomsForIP(Context context, String ip) {
         ChatsDBHelper chatsDB = new ChatsDBHelper(context);
         ArrayList<DataTypes.ChatRoom> returnVal = new ArrayList<>();
-        for (HashMap<String, String> curr : chatsDB.getChats()) {
-            if (curr.get("IP").equals(ip)) returnVal.add(new DataTypes().new ChatRoom(
-                    curr.get("IP"), curr.get("ROOM"), curr.get("NICKNAME"), curr.get("PASSWORD")));
+        for (DataTypes.ChatRoom curr : chatsDB.getChats()) {
+            if (curr.getIP().equals(ip)) returnVal.add(curr);
         }
         chatsDB.close();
         return returnVal;
@@ -35,6 +34,19 @@ public class DataStore {
         ChatsDBHelper chatsDB = new ChatsDBHelper(context);
         chatsDB.addChat(ip, room, nickname, password);
         chatsDB.close();
+    }
+
+    public static void updateRoomColor(Context context, String ip, String room, int color) {
+        ChatsDBHelper chatsDB = new ChatsDBHelper(context);
+        chatsDB.updateRoomColor(ip, room, color);
+        chatsDB.close();
+    }
+
+    public static int getRoomColor(Context context, String ip, String room) {
+        ChatsDBHelper chatsDB = new ChatsDBHelper(context);
+        int color = chatsDB.getColorForRoom(ip, room);
+        chatsDB.close();
+        return color;
     }
 
     public static void removeRoom(Context context, String ip, String room) {

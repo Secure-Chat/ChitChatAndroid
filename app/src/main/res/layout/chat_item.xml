@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/rec_view"
     android:orientation="vertical"
-    android:padding="@dimen/padding_large">
+    android:padding="@dimen/padding_regular">
 
     <ImageView
         android:id="@+id/color_indicator"
