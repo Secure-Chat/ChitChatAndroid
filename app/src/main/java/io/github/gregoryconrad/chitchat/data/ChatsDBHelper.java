@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.jar.Pack200;
 
 class ChatsDBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "CHATS.db";
@@ -56,18 +57,9 @@ class ChatsDBHelper extends SQLiteOpenHelper {
     }
 
     void addChat(String ip, String room, String nickname, String password) {
-        //todo make this less stupid
-        for (DataTypes.ChatRoom currRoom : getChats()) {
-            if (currRoom.getIP().equals(ip) && currRoom.getRoom().equals(room)) {
-                ContentValues newValues = new ContentValues();
-                newValues.put(COLUMN_NAME, nickname);
-                newValues.put(COLUMN_PASSWORD, password);
-                getWritableDatabase().update(TABLE_NAME, newValues,
-                        COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?", new String[]{ip, room});
-                return;
-            }
-        }
-
+        getWritableDatabase().delete(TABLE_NAME,
+                COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?",
+                new String[]{ip, room});
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_IP, ip);
         contentValues.put(COLUMN_ROOM, room);
@@ -84,13 +76,11 @@ class ChatsDBHelper extends SQLiteOpenHelper {
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?", new String[]{ip, room});
     }
 
-    int getColorForRoom(String ip, String room) {
+    DataTypes.ChatRoom getRoom(String ip, String room) {
         for (DataTypes.ChatRoom curr : getChats()) {
-            if (curr.getIP().equals(ip) && curr.getRoom().equals(room)) {
-                return curr.getColor();
-            }
+            if (curr.getIP().equals(ip) && curr.getRoom().equals(room)) return curr;
         }
-        return 0xFF000000;
+        return null;
     }
 
     void removeChat(String ip, String room) {

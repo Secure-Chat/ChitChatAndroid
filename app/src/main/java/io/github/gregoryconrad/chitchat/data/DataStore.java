@@ -42,11 +42,11 @@ public class DataStore {
         chatsDB.close();
     }
 
-    public static int getRoomColor(Context context, String ip, String room) {
+    public static DataTypes.ChatRoom getRoom(Context context, String ip, String room) {
         ChatsDBHelper chatsDB = new ChatsDBHelper(context);
-        int color = chatsDB.getColorForRoom(ip, room);
+        DataTypes.ChatRoom returnVal = chatsDB.getRoom(ip, room);
         chatsDB.close();
-        return color;
+        return returnVal;
     }
 
     public static void removeRoom(Context context, String ip, String room) {
