@@ -50,6 +50,9 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                 ColorPickerDialogBuilder.with(activity)
                         .setTitle("Pick the chat color")
                         .wheelType(ColorPickerView.WHEEL_TYPE.CIRCLE).density(12)
+                        .initialColor(DataStore.getRoom(activity,
+                                String.valueOf(holder.ip.getText()),
+                                String.valueOf(holder.chatName.getText())).getColor())
                         .setPositiveButton("Change", new ColorPickerClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {

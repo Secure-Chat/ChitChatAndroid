@@ -3,7 +3,6 @@ package io.github.gregoryconrad.chitchat.data;
 import android.content.Context;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * A bridge for accessing the data in SQLite Databases

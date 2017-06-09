@@ -14,7 +14,9 @@
         android:layout_centerVertical="true"
         android:contentDescription="@string/chat_color"
         android:paddingEnd="@dimen/padding_regular"
-        android:paddingRight="@dimen/padding_regular" />
+        android:paddingLeft="0dp"
+        android:paddingRight="@dimen/padding_regular"
+        android:paddingStart="0dp" />
 
     <TextView
         android:id="@+id/chat_name"
