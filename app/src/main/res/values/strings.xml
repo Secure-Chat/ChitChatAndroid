@@ -11,6 +11,7 @@
     <!-- ChatFragment -->
     <string name="chat_send">Send</string>
     <string name="chat_message_hint">Type a message…</string>
+    <string name="chat_color">Color</string>
 
     <!-- Add IP Dialog -->
     <string name="add_ip_hint">IP to add</string>

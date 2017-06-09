@@ -3,4 +3,5 @@
     <dimen name="text_header">20sp</dimen>
     <dimen name="padding_regular">6dp</dimen>
     <dimen name="padding_large">10dp</dimen>
+    <dimen name="rec_view">72dp</dimen>
 </resources>

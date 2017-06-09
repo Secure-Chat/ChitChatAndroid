@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
         //todo used sharedpref for saving curr ip and for notification settings
         //fixme there might be an issue with sorting messages,
         //fixme   if so use ids as a secondary compare feature if timestamps compare is 0
-        // https://github.com/QuadFlask/colorpicker
 
         try {
             this.currIP = DataStore.getIPs(this).get(0);
@@ -111,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     private void startChatSocket(final String ip) {
         this.currIP = ip;
         if (this.chatSocket != null) this.chatSocket.close();
-        this.chatSocket = new WebSocketClient(URI.create(ip + ":6789")) {
+        this.chatSocket = new WebSocketClient(URI.create("ws://" + ip + ":6789")) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 Log.i("ChatSocket", "Connection to the server has been established");
