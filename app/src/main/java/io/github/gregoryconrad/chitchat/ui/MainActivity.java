@@ -23,7 +23,6 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
-import java.util.ArrayList;
 
 import io.github.gregoryconrad.chitchat.R;
 import io.github.gregoryconrad.chitchat.data.DataStore;
@@ -79,20 +78,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("unused")
     public String getCurrIP() {
         return this.currIP;
     }
 
+    @SuppressWarnings("unused")
     public String getCurrRoom() {
         return this.currRoom;
     }
 
+    @SuppressWarnings("unused")
     public void setCurrRoom(String room) {
         this.currRoom = room;
         this.chatFrag.update();
         this.pager.setCurrentItem(1);
     }
 
+    @SuppressWarnings("unused")
     public void sendMessage(String message) {
         try {
             this.chatSocket.send(new Gson().toJson(new DataTypes().new JSON("message")
@@ -166,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
      * @param title The title to set the ActionBar
      * @return true if the text changed, false otherwise
      */
+    @SuppressWarnings({"ConstantConditions", "deprecation"})
     public boolean setActionBarTitle(String title) {
         try {
             getSupportActionBar().setTitle(Html.fromHtml("<font color=\"#" +
@@ -195,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @SuppressWarnings("ConstantConditions") // to remove NullPointerException warning
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {

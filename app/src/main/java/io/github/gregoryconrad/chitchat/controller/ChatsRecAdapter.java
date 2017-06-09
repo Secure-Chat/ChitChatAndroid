@@ -59,8 +59,8 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
 
         ChatHolder(View itemView) {
             super(itemView);
-            this.chatName = (TextView) itemView.findViewById(R.id.chat_name);
-            this.ip = (TextView) itemView.findViewById(R.id.ip);
+            this.chatName = itemView.findViewById(R.id.chat_name);
+            this.ip = itemView.findViewById(R.id.ip);
         }
     }
 }
