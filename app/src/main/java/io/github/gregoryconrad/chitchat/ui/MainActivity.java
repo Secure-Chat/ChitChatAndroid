@@ -27,6 +27,7 @@ import java.net.URI;
 import io.github.gregoryconrad.chitchat.R;
 import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
+import io.github.gregoryconrad.chitchat.data.JSEncryption;
 
 public class MainActivity extends AppCompatActivity {
     private SelectiveSwipeViewPager pager = null;
@@ -96,14 +97,29 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressWarnings("unused")
     public void sendMessage(String message) {
-        try {
-            this.chatSocket.send(new Gson().toJson(new DataTypes().new JSON("message")
-                    .setRoom(currRoom).setMsg(message)));
-        } catch (Exception e) {
-            Log.e("ChatSocket", "Could not send a message: " + e.getMessage());
-            e.printStackTrace();
-            Toast.makeText(this, "Could not send your message", Toast.LENGTH_SHORT).show();
-        }
+        JSEncryption.encrypt(this, message,
+                DataStore.getRoom(this, currIP, currRoom).getPassword(),
+                new JSEncryption.EncryptCallback() {
+                    @Override
+                    public void run(String txt, boolean worked) {
+                        if (worked) {
+                            try {
+                                chatSocket.send(new Gson().toJson(new DataTypes().
+                                        new JSON("message").setRoom(currRoom).setMsg(txt)));
+                            } catch (Exception e) {
+                                Log.e("ChatSocket", "Could not send a message: " + e.getMessage());
+                                e.printStackTrace();
+                                Toast.makeText(MainActivity.this, "Could not send your message",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Failed to encrypt your message",
+                                    Toast.LENGTH_SHORT).show();
+                            Log.e("MainActivity", "Failed to encrypt the message: " + txt);
+                        }
+                    }
+                });
+
     }
 
     private void startChatSocket(final String ip) {
@@ -122,13 +138,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onMessage(final String s) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "Received: " + s,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
                 DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
                 if ("message".equals(json.getType()) &&
                         json.getName() != null && json.getMsg() != null) {
@@ -142,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClose(int i, String s, boolean b) {
-                Log.e("ChatSocket", "Not connected to the server");
+                Log.w("ChatSocket", "Not connected to the server");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -176,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     "\">" + title + "</font>"));
             return true;
         } catch (Exception e) {
-            Log.i(getString(R.string.app_name), "Could not change the ActionBar's title");
+            Log.e("MainActivity", "Could not change the ActionBar's title");
         }
         return false;
     }

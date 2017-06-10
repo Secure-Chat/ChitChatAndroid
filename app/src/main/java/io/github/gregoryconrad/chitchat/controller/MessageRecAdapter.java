@@ -1,6 +1,7 @@
 package io.github.gregoryconrad.chitchat.controller;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import io.github.gregoryconrad.chitchat.R;
 import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
+import io.github.gregoryconrad.chitchat.data.JSEncryption;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
 
 /**
@@ -58,12 +60,28 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
             this.room = activity.getCurrRoom();
             this.messages = new ArrayList<>();
         }
-        ArrayList<DataTypes.ChatMessage> newMsgs =
-                DataStore.getMessages(activity, activity.getCurrIP(), room);
-        for (int i = this.messages.size(); i < newMsgs.size(); ++i) {
-            this.messages.add(newMsgs.get(i));
+        update(DataStore.getMessages(activity, activity.getCurrIP(), room), messages.size());
+    }
+
+    private void update(final ArrayList<DataTypes.ChatMessage> encryptedMessages, final int index) {
+        if (index >= 0 && index < encryptedMessages.size()) {
+            JSEncryption.decrypt(activity, encryptedMessages.get(index).getMessage(),
+                    DataStore.getRoom(activity, activity.getCurrIP(),
+                            activity.getCurrRoom()).getPassword(),
+                    new JSEncryption.EncryptCallback() {
+                        @Override
+                        public void run(String txt, boolean worked) {
+                            if (worked) messages.add(new DataTypes().new ChatMessage(
+                                    encryptedMessages.get(index).getName(), txt,
+                                    encryptedMessages.get(index).getId()));
+                            else Log.i("MessageRecAdapter", "Failed to decrypt a message: " + txt);
+                            update(encryptedMessages, index + 1);
+                        }
+                    }
+            );
         }
     }
+
 
     class MessageHolder extends RecyclerView.ViewHolder {
         private TextView username = null;

@@ -113,7 +113,7 @@ public class DataTypes {
         private String name, message;
         private int id;
 
-        ChatMessage(String name, String message, int id) {
+        public ChatMessage(String name, String message, int id) {
             this.name = name;
             this.message = message;
             this.id = id;
