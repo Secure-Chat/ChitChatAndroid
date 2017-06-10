@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private String currRoom = null;
     private WebSocketClient chatSocket = null;
 
+    @SuppressWarnings("SpellCheckingInspection") // to remove the warning for chat.etcg.pw
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,14 +46,12 @@ public class MainActivity extends AppCompatActivity {
 
         //todo long click on messages and rooms
         //todo add AlarmManager (for boot) checking for new messages on all servers
-        //todo used sharedpref for saving curr ip and for notification settings
-        //fixme there might be an issue with sorting messages,
-        //fixme   if so use ids as a secondary compare feature if timestamps compare is 0
+        //todo used SharedPref for saving curr ip and for notification settings
 
         try {
             this.currIP = DataStore.getIPs(this).get(0);
         } catch (Exception e) {
-            DataStore.addRoom(this, "chat.etcg.pw", "main", "", "");
+            DataStore.addRoom(this, "chat.etcg.pw", "Main", "", "");
             this.currIP = DataStore.getIPs(this).get(0);
         }
         this.currRoom = DataStore.getRoomsForIP(this,

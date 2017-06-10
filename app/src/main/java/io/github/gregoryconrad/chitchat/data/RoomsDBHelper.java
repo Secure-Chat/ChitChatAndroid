@@ -7,11 +7,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
-import java.util.jar.Pack200;
 
-class ChatsDBHelper extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "CHATS.db";
-    private static final String TABLE_NAME = "CHATS";
+/**
+ * SQLite Database that holds all of the chat rooms
+ */
+class RoomsDBHelper extends SQLiteOpenHelper {
+    private static final String DATABASE_NAME = "ROOMS.db";
+    private static final String TABLE_NAME = "ROOMS";
     private static final String COLUMN_IP = "IP";
     private static final String COLUMN_ROOM = "ROOM";
     private static final String COLUMN_NAME = "NAME";
@@ -19,7 +21,7 @@ class ChatsDBHelper extends SQLiteOpenHelper {
     private static final String COLUMN_COLOR = "COLOR";
     private static final int CURRENT_VERSION = 1;
 
-    ChatsDBHelper(Context context) {
+    RoomsDBHelper(Context context) {
         super(context, DATABASE_NAME, null, CURRENT_VERSION);
     }
 
@@ -39,7 +41,10 @@ class ChatsDBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    ArrayList<DataTypes.ChatRoom> getChats() {
+    /**
+     * @return list of the saved chat rooms
+     */
+    ArrayList<DataTypes.ChatRoom> getRooms() {
         ArrayList<DataTypes.ChatRoom> returnVal = new ArrayList<>();
         Cursor cursor = getReadableDatabase().rawQuery("SELECT * FROM " + TABLE_NAME, null);
         if (cursor.moveToFirst()) {
@@ -56,7 +61,15 @@ class ChatsDBHelper extends SQLiteOpenHelper {
         return returnVal;
     }
 
-    void addChat(String ip, String room, String nickname, String password) {
+    /**
+     * Adds a chat room to the database
+     *
+     * @param ip       the ip of the room
+     * @param room     the room identifier
+     * @param nickname the nickname to use for this room
+     * @param password the password to use for this room
+     */
+    void addRoom(String ip, String room, String nickname, String password) {
         getWritableDatabase().delete(TABLE_NAME,
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?",
                 new String[]{ip, room});
@@ -65,10 +78,17 @@ class ChatsDBHelper extends SQLiteOpenHelper {
         contentValues.put(COLUMN_ROOM, room);
         contentValues.put(COLUMN_NAME, nickname);
         contentValues.put(COLUMN_PASSWORD, password);
-        contentValues.put(COLUMN_COLOR, 0xFFFFFFFF);
+        contentValues.put(COLUMN_COLOR, 0xFFFFFFFF); // default to solid white
         getWritableDatabase().insert(TABLE_NAME, null, contentValues);
     }
 
+    /**
+     * Changes the color for a specified room
+     *
+     * @param ip    the ip of the room
+     * @param room  the room identifier
+     * @param color the color to use for this room
+     */
     void updateRoomColor(String ip, String room, int color) {
         ContentValues newValues = new ContentValues();
         newValues.put(COLUMN_COLOR, color);
@@ -76,14 +96,25 @@ class ChatsDBHelper extends SQLiteOpenHelper {
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?", new String[]{ip, room});
     }
 
+    /**
+     * @param ip   the ip of the room to return
+     * @param room the room identifier of the room to return
+     * @return the room object for the specified room
+     */
     DataTypes.ChatRoom getRoom(String ip, String room) {
-        for (DataTypes.ChatRoom curr : getChats()) {
+        for (DataTypes.ChatRoom curr : getRooms()) {
             if (curr.getIP().equals(ip) && curr.getRoom().equals(room)) return curr;
         }
         return null;
     }
 
-    void removeChat(String ip, String room) {
+    /**
+     * Removes a saved room from the database
+     *
+     * @param ip   the ip of the room to remove
+     * @param room the room to remove
+     */
+    void removeRoom(String ip, String room) {
         getWritableDatabase().delete(TABLE_NAME,
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?", new String[]{ip, room});
     }

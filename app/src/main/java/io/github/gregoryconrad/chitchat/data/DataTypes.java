@@ -3,6 +3,9 @@ package io.github.gregoryconrad.chitchat.data;
 import android.support.annotation.NonNull;
 
 public class DataTypes {
+    /**
+     * A class that is used to parse JSON that meets the protocol
+     */
     public class JSON {
         private String type = null;
         private String room = null;
@@ -67,6 +70,9 @@ public class DataTypes {
         }
     }
 
+    /**
+     * A class that represents a chat room
+     */
     public class ChatRoom {
         private String ip, room, nickname, password;
         private int color;
@@ -100,14 +106,17 @@ public class DataTypes {
         }
     }
 
+    /**
+     * A class that represents a single message
+     */
     public class ChatMessage implements Comparable<ChatMessage> {
         private String name, message;
-        private int timeStamp;
+        private int id;
 
-        public ChatMessage(String name, String message, int timeStamp) {
+        ChatMessage(String name, String message, int id) {
             this.name = name;
             this.message = message;
-            this.timeStamp = timeStamp;
+            this.id = id;
         }
 
         public String getName() {
@@ -118,9 +127,13 @@ public class DataTypes {
             return this.message;
         }
 
+        public int getId() {
+            return this.id;
+        }
+
         @Override
         public int compareTo(@NonNull ChatMessage o) {
-            return this.timeStamp - o.timeStamp;
+            return this.id - o.id;
         }
     }
 }

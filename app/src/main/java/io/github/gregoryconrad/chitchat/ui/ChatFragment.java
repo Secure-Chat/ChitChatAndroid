@@ -13,6 +13,9 @@ import android.widget.EditText;
 import io.github.gregoryconrad.chitchat.R;
 import io.github.gregoryconrad.chitchat.controller.MessageRecAdapter;
 
+/**
+ * A Fragment that is used for chatting
+ */
 public class ChatFragment extends Fragment {
     private MessageRecAdapter messageRecAdapter = null;
     private RecyclerView messages = null;
@@ -23,7 +26,7 @@ public class ChatFragment extends Fragment {
         final View view = inflater.inflate(R.layout.fragment_chat, container, false);
 
         this.messageRecAdapter = new MessageRecAdapter((MainActivity) getActivity());
-        this.messages = (RecyclerView) view.findViewById(R.id.messages);
+        this.messages = view.findViewById(R.id.messages);
         this.messages.setAdapter(messageRecAdapter);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         this.messages.setLayoutManager(layoutManager);

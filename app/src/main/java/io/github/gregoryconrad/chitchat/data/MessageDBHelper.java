@@ -9,6 +9,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * SQLite Database that holds all of the messages
+ */
 class MessageDBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "MESSAGES.db";
     private static final String TABLE_NAME = "MESSAGES";
@@ -42,6 +45,11 @@ class MessageDBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    /**
+     * @param ip   ip to select messages from
+     * @param room room to select messages from
+     * @return all of the messages stored
+     */
     ArrayList<DataTypes.ChatMessage> getMessages(String ip, String room) {
         deleteOldMessages();
         ArrayList<DataTypes.ChatMessage> messages = new ArrayList<>();
@@ -53,7 +61,7 @@ class MessageDBHelper extends SQLiteOpenHelper {
                     messages.add(new DataTypes().new ChatMessage(
                             cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
                             cursor.getString(cursor.getColumnIndex(COLUMN_MESSAGE)),
-                            cursor.getInt(cursor.getColumnIndex(COLUMN_TIME))));
+                            cursor.getInt(cursor.getColumnIndex(COLUMN_ID))));
                 }
             } while (cursor.moveToNext());
         }
@@ -62,6 +70,15 @@ class MessageDBHelper extends SQLiteOpenHelper {
         return messages;
     }
 
+    /**
+     * Adds a message to the database
+     *
+     * @param ip      the ip the message came from
+     * @param room    the room the message came from
+     * @param id      the id of the message
+     * @param name    the nickname of the user who sent the message
+     * @param message the actual message
+     */
     void addMessage(String ip, String room, int id, String name, String message) {
         deleteMessage(ip, room, id);
         ContentValues contentValues = new ContentValues();

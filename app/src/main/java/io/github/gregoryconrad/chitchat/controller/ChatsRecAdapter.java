@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +22,12 @@ import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
 
+/**
+ * An adapter that feeds the RecyclerView for the chat rooms
+ */
 public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHolder> {
     private MainActivity activity = null;
-    private boolean isUpdating = false;
+    private boolean isUpdating = false; //forces recreation of all items to update
 
     public ChatsRecAdapter(MainActivity activity) {
         this.activity = activity;
@@ -41,7 +43,6 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
     public void onBindViewHolder(final ChatsRecAdapter.ChatHolder holder, int position) {
         ArrayList<DataTypes.ChatRoom> rooms =
                 DataStore.getRoomsForIP(activity, activity.getCurrIP());
-        Log.e("ChatAdapter", String.valueOf(holder.colorIndicator.getWidth()));
         holder.chatName.setText(rooms.get(position).getRoom());
         holder.ip.setText(rooms.get(position).getIP());
         holder.colorIndicator.setOnClickListener(new View.OnClickListener() {
@@ -62,8 +63,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                                         selectedColor);
                                 holder.setColor();
                             }
-                        }).setNegativeButton("Cancel", null)
-                        .noSliders().build().show();
+                        }).setNegativeButton("Cancel", null).noSliders().build().show();
             }
         });
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -80,6 +80,9 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
         return (isUpdating) ? 0 : DataStore.getRoomsForIP(activity, activity.getCurrIP()).size();
     }
 
+    /**
+     * Updates the displayed chat room list
+     */
     public void update() {
         this.isUpdating = true;
         notifyDataSetChanged();

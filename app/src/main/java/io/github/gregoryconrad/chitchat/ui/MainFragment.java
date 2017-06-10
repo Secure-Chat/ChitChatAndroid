@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 import io.github.gregoryconrad.chitchat.R;
 import io.github.gregoryconrad.chitchat.controller.ChatsRecAdapter;
 
+/**
+ * A Fragment that is used to display the chat rooms
+ */
 public class MainFragment extends Fragment {
     private ChatsRecAdapter chatsRecAdapter = null;
     private RecyclerView chats = null;
@@ -22,13 +25,12 @@ public class MainFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         this.chatsRecAdapter = new ChatsRecAdapter((MainActivity) getActivity());
-        this.chats = (RecyclerView) view.findViewById(R.id.chats);
+        this.chats = view.findViewById(R.id.chats);
         this.chats.setAdapter(chatsRecAdapter);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         this.chats.setLayoutManager(layoutManager);
         this.chats.addItemDecoration(new DividerItemDecoration(getContext(),
                 layoutManager.getOrientation()));
-
         update();
 
         return view;

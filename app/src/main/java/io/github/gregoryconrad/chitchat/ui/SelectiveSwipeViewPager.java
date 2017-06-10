@@ -5,6 +5,9 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
+/**
+ * A modified view pager that allows swipes from the second item to the first
+ */
 public class SelectiveSwipeViewPager extends ViewPager {
     public SelectiveSwipeViewPager(Context context) {
         super(context);

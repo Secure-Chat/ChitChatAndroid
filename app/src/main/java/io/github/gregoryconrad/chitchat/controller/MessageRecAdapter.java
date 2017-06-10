@@ -13,6 +13,9 @@ import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
 
+/**
+ * An adapter that feeds the RecyclerView for the messages
+ */
 public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.MessageHolder> {
     private MainActivity activity = null;
     private String room = null;
@@ -47,6 +50,9 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
         return messages.size();
     }
 
+    /**
+     * Updates the displayed messages
+     */
     public void update() {
         if (!this.room.equals(activity.getCurrRoom())) {
             this.room = activity.getCurrRoom();
@@ -65,8 +71,8 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
 
         MessageHolder(View itemView) {
             super(itemView);
-            this.username = (TextView) itemView.findViewById(R.id.username);
-            this.message = (TextView) itemView.findViewById(R.id.message);
+            this.username = itemView.findViewById(R.id.username);
+            this.message = itemView.findViewById(R.id.message);
         }
     }
 }
