@@ -41,9 +41,8 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
 
     @Override
     public void onBindViewHolder(final ChatsRecAdapter.ChatHolder holder, int position) {
-        ArrayList<DataTypes.ChatRoom> rooms =
-                DataStore.getRoomsForIP(activity, activity.getCurrIP());
-        holder.chatName.setText(rooms.get(position).getRoom());
+        ArrayList<DataTypes.ChatRoom> rooms = DataStore.getRooms(activity);
+        holder.room.setText(rooms.get(position).getRoom());
         holder.ip.setText(rooms.get(position).getIP());
         holder.colorIndicator.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,13 +52,15 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                         .wheelType(ColorPickerView.WHEEL_TYPE.CIRCLE).density(12)
                         .initialColor(DataStore.getRoom(activity,
                                 String.valueOf(holder.ip.getText()),
-                                String.valueOf(holder.chatName.getText())).getColor())
+                                String.valueOf(holder.room.getText())).getColor())
                         .setPositiveButton("Change", new ColorPickerClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
+                            public void onClick(DialogInterface dialog, int selectedColor,
+                                                Integer[] allColors) {
                                 DataStore.updateRoomColor(activity,
-                                        String.valueOf(holder.ip.getText()),
-                                        String.valueOf(holder.chatName.getText()),
+                                        DataStore.getRoom(activity,
+                                                String.valueOf(holder.ip.getText()),
+                                                String.valueOf(holder.room.getText())),
                                         selectedColor);
                                 holder.setColor();
                             }
@@ -69,7 +70,9 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.setCurrRoom(String.valueOf(holder.chatName.getText()));
+                activity.setCurrRoom(DataStore.getRoom(activity,
+                        String.valueOf(holder.ip.getText()),
+                        String.valueOf(holder.room.getText())));
             }
         });
         holder.setColor();
@@ -77,7 +80,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
 
     @Override
     public int getItemCount() {
-        return (isUpdating) ? 0 : DataStore.getRoomsForIP(activity, activity.getCurrIP()).size();
+        return (isUpdating) ? 0 : DataStore.getRooms(activity).size();
     }
 
     /**
@@ -92,13 +95,13 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
 
     class ChatHolder extends RecyclerView.ViewHolder {
         private ImageView colorIndicator = null;
-        private TextView chatName = null;
+        private TextView room = null;
         private TextView ip = null;
 
         ChatHolder(View itemView) {
             super(itemView);
             this.colorIndicator = itemView.findViewById(R.id.color_indicator);
-            this.chatName = itemView.findViewById(R.id.chat_name);
+            this.room = itemView.findViewById(R.id.chat_name);
             this.ip = itemView.findViewById(R.id.ip);
         }
 
@@ -110,7 +113,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
             Canvas canvas = new Canvas(bitmap);
             Paint paint = new Paint();
             paint.setColor(DataStore.getRoom(activity,
-                    String.valueOf(ip.getText()), String.valueOf(chatName.getText())).getColor());
+                    String.valueOf(ip.getText()), String.valueOf(room.getText())).getColor());
             canvas.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2,
                     bitmap.getWidth() / 2, paint);
             this.colorIndicator.setImageBitmap(bitmap);

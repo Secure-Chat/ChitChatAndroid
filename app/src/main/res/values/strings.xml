@@ -5,19 +5,16 @@
     <!-- ActionBar -->
     <string name="actionbar_add">Add Room</string>
     <string name="actionbar_about">About</string>
-    <string name="actionbar_add_ip">Add an IP</string>
-    <string name="actionbar_switch_ip">Switch to another IP</string>
 
     <!-- ChatFragment -->
     <string name="chat_send">Send</string>
     <string name="chat_message_hint">Type a message…</string>
     <string name="chat_color">Color</string>
 
-    <!-- Add IP Dialog -->
-    <string name="add_ip_hint">IP to add</string>
-
     <!-- Login Dialog -->
-    <string name="login_room">Chat Room</string>
-    <string name="login_username">Username</string>
-    <string name="login_password">Password</string>
+    <string name="add_ip">IP of server</string>
+    <string name="add_ip_hint">chat.etcg.pw</string>
+    <string name="add_room">Chat Room</string>
+    <string name="add_name">Nickname</string>
+    <string name="add_password">Password</string>
 </resources>

@@ -8,22 +8,9 @@ import java.util.ArrayList;
  * A bridge for accessing the data in SQLite Databases
  */
 public class DataStore {
-    public static ArrayList<String> getIPs(Context context) {
+    public static ArrayList<DataTypes.ChatRoom> getRooms(Context context) {
         RoomsDBHelper roomsDB = new RoomsDBHelper(context);
-        ArrayList<String> returnVal = new ArrayList<>();
-        for (DataTypes.ChatRoom curr : roomsDB.getRooms()) {
-            if (returnVal.indexOf(curr.getIP()) < 0) returnVal.add(curr.getIP());
-        }
-        roomsDB.close();
-        return returnVal;
-    }
-
-    public static ArrayList<DataTypes.ChatRoom> getRoomsForIP(Context context, String ip) {
-        RoomsDBHelper roomsDB = new RoomsDBHelper(context);
-        ArrayList<DataTypes.ChatRoom> returnVal = new ArrayList<>();
-        for (DataTypes.ChatRoom curr : roomsDB.getRooms()) {
-            if (curr.getIP().equals(ip)) returnVal.add(curr);
-        }
+        ArrayList<DataTypes.ChatRoom> returnVal = roomsDB.getRooms();
         roomsDB.close();
         return returnVal;
     }
@@ -35,9 +22,9 @@ public class DataStore {
         roomsDB.close();
     }
 
-    public static void updateRoomColor(Context context, String ip, String room, int color) {
+    public static void updateRoomColor(Context context, DataTypes.ChatRoom room, int color) {
         RoomsDBHelper roomsDB = new RoomsDBHelper(context);
-        roomsDB.updateRoomColor(ip, room, color);
+        roomsDB.updateRoomColor(room, color);
         roomsDB.close();
     }
 
@@ -48,30 +35,30 @@ public class DataStore {
         return returnVal;
     }
 
-    public static void removeRoom(Context context, String ip, String room) {
+    public static void removeRoom(Context context, DataTypes.ChatRoom room) {
         RoomsDBHelper roomsDB = new RoomsDBHelper(context);
-        roomsDB.removeRoom(ip, room);
+        roomsDB.removeRoom(room);
         roomsDB.close();
     }
 
     public static ArrayList<DataTypes.ChatMessage> getMessages(Context context,
-                                                               String ip, String room) {
+                                                               DataTypes.ChatRoom room) {
         MessageDBHelper messageDB = new MessageDBHelper(context);
-        ArrayList<DataTypes.ChatMessage> returnVal = messageDB.getMessages(ip, room);
+        ArrayList<DataTypes.ChatMessage> returnVal = messageDB.getMessages(room);
         messageDB.close();
         return returnVal;
     }
 
-    public static void addMessage(Context context, String ip,
-                                  String room, int id, String name, String message) {
+    public static void addMessage(Context context, DataTypes.ChatRoom room,
+                                  int id, String name, String message) {
         MessageDBHelper messageDB = new MessageDBHelper(context);
-        messageDB.addMessage(ip, room, id, name, message);
+        messageDB.addMessage(room, id, name, message);
         messageDB.close();
     }
 
-    public static void removeMessage(Context context, String ip, String room, int id) {
+    public static void removeMessage(Context context, DataTypes.ChatRoom room, int id) {
         MessageDBHelper messageDB = new MessageDBHelper(context);
-        messageDB.deleteMessage(ip, room, id);
+        messageDB.deleteMessage(room, id);
         messageDB.close();
     }
 }

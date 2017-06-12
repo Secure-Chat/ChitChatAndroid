@@ -1,7 +1,10 @@
 package io.github.gregoryconrad.chitchat.ui;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
@@ -13,7 +16,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -33,9 +35,9 @@ public class MainActivity extends AppCompatActivity {
     private SelectiveSwipeViewPager pager = null;
     private MainFragment mainFrag = new MainFragment();
     private ChatFragment chatFrag = new ChatFragment();
-    private String currIP = null;
-    private String currRoom = null;
+    private DataTypes.ChatRoom currRoom = null;
     private WebSocketClient chatSocket = null;
+    private ProgressDialog connectDialog = null;
 
     @SuppressWarnings("SpellCheckingInspection") // to remove the warning for chat.etcg.pw
     @Override
@@ -49,63 +51,119 @@ public class MainActivity extends AppCompatActivity {
         //todo add AlarmManager (for boot) checking for new messages on all servers
         //todo used SharedPref for saving curr ip and for notification settings
 
-        try {
-            this.currIP = DataStore.getIPs(this).get(0);
-        } catch (Exception e) {
-            DataStore.addRoom(this, "chat.etcg.pw", "Main", "", "");
-            this.currIP = DataStore.getIPs(this).get(0);
-        }
-        this.currRoom = DataStore.getRoomsForIP(this,
-                DataStore.getIPs(this).get(0)).get(0).getRoom();
-        startChatSocket(this.currIP);
+        this.pager = (SelectiveSwipeViewPager) findViewById(R.id.pager);
+        this.pager.setPageMargin(6);
+        this.pager.setPageMarginDrawable(R.color.primary);
+        this.pager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public Fragment getItem(int position) {
+                if (position == 0) return mainFrag;
+                return chatFrag;
+            }
 
-        {
-            this.pager = (SelectiveSwipeViewPager) findViewById(R.id.pager);
-            this.pager.setPageMargin(6);
-            this.pager.setPageMarginDrawable(R.color.primary);
-            this.pager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public int getCount() {
+                return 2;
+            }
+        });
+
+        if (DataStore.getRooms(this).size() < 1) new AlertDialog.Builder(this)
+                .setTitle("Welcome to ChitChat!")
+                .setMessage("In order to use this application, first add a chat room " +
+                        "by clicking the + button at the top of the screen.")
+                .setPositiveButton("Ok", null).create().show();
+    }
+
+    private void startChatSocket() {
+        if (this.chatSocket != null) this.chatSocket.close();
+        if (currRoom != null) {
+            this.chatSocket = new WebSocketClient(
+                    URI.create("ws://" + currRoom.getIP() + ":6789")) {
                 @Override
-                public Fragment getItem(int position) {
-                    if (position == 0) return mainFrag;
-                    return chatFrag;
+                public void onOpen(ServerHandshake serverHandshake) {
+                    Log.i("ChatSocket", "Connection to the server has been established");
+                    this.send(new Gson().toJson(new DataTypes().new JSON("connect")
+                            .setRoom(currRoom.getRoom())
+                            .setName(currRoom.getNickname())));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            chatFrag.update();
+                            connectDialog.dismiss();
+                            pager.setCurrentItem(1);
+                        }
+                    });
                 }
 
                 @Override
-                public int getCount() {
-                    return 2;
+                public void onMessage(final String s) {
+                    DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
+                    if ("message".equals(json.getType()) &&
+                            json.getName() != null && json.getMsg() != null) {
+                        DataStore.addMessage(MainActivity.this, currRoom,
+                                json.getId(), json.getName(), json.getMsg());
+                        chatFrag.update();
+                    } else Log.i("ChatSocket", "Got nonconforming data: " + s);
                 }
-            });
+
+                @Override
+                public void onClose(int i, String s, boolean b) {
+                    Log.w("ChatSocket", "Not connected to the server");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (connectDialog.isShowing()) {
+                                connectDialog.dismiss();
+                                Toast.makeText(MainActivity.this, "Could not connect to the server",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(MainActivity.this, "Lost connection to the server",
+                                        Toast.LENGTH_SHORT).show();
+                                pager.setCurrentItem(0);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e("ChatSocket", "Encountered error " + e.getMessage());
+                    e.printStackTrace();
+                }
+            };
+            this.chatSocket.connect();
         }
     }
 
     @SuppressWarnings("unused")
-    public String getCurrIP() {
-        return this.currIP;
-    }
-
-    @SuppressWarnings("unused")
-    public String getCurrRoom() {
+    public DataTypes.ChatRoom getCurrRoom() {
         return this.currRoom;
     }
 
     @SuppressWarnings("unused")
-    public void setCurrRoom(String room) {
+    public void setCurrRoom(DataTypes.ChatRoom room) {
         this.currRoom = room;
-        this.chatFrag.update();
-        this.pager.setCurrentItem(1);
+        this.connectDialog = ProgressDialog.show(this, "Connecting...",
+                "Connecting to " + room.getIP(), true);
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                startChatSocket();
+            }
+        }, 500);
     }
 
     @SuppressWarnings("unused")
     public void sendMessage(String message) {
         JSEncryption.encrypt(this, message,
-                DataStore.getRoom(this, currIP, currRoom).getPassword(),
+                this.currRoom.getPassword(),
                 new JSEncryption.EncryptCallback() {
                     @Override
                     public void run(String txt, boolean worked) {
                         if (worked) {
                             try {
                                 chatSocket.send(new Gson().toJson(new DataTypes().
-                                        new JSON("message").setRoom(currRoom).setMsg(txt)));
+                                        new JSON("message").setRoom(currRoom.getRoom()).setMsg(txt)));
                             } catch (Exception e) {
                                 Log.e("ChatSocket", "Could not send a message: " + e.getMessage());
                                 e.printStackTrace();
@@ -120,55 +178,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-    }
-
-    private void startChatSocket(final String ip) {
-        this.currIP = ip;
-        if (this.chatSocket != null) this.chatSocket.close();
-        this.chatSocket = new WebSocketClient(URI.create("ws://" + ip + ":6789")) {
-            @Override
-            public void onOpen(ServerHandshake serverHandshake) {
-                Log.i("ChatSocket", "Connection to the server has been established");
-                for (DataTypes.ChatRoom room : DataStore.getRoomsForIP(MainActivity.this, ip)) {
-                    this.send(new Gson().toJson(new DataTypes().new JSON("connect")
-                            .setRoom(room.getRoom())
-                            .setName(room.getNickname())));
-                }
-            }
-
-            @Override
-            public void onMessage(final String s) {
-                DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
-                if ("message".equals(json.getType()) &&
-                        json.getName() != null && json.getMsg() != null) {
-                    DataStore.addMessage(MainActivity.this, ip, currRoom,
-                            json.getId(), json.getName(), json.getMsg());
-                    chatFrag.update();
-                } else {
-                    Log.i("ChatSocket", "Got nonconforming data: " + s);
-                }
-            }
-
-            @Override
-            public void onClose(int i, String s, boolean b) {
-                Log.w("ChatSocket", "Not connected to the server");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "Not connected to the server " +
-                                        "(no messages can be sent until app restart)",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.e("ChatSocket", "Encountered error " + e.getMessage());
-                e.printStackTrace();
-            }
-        };
-        this.chatSocket.connect();
     }
 
     /**
@@ -216,70 +225,27 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.action_add:
                 new AlertDialog.Builder(this)
-                        .setTitle("Add or update a room")
+                        .setTitle("Add a room")
                         .setView(R.layout.dialog_login)
                         .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 AlertDialog ad = (AlertDialog) dialog;
-                                String room = ((EditText) ad.findViewById(R.id.room))
-                                        .getText().toString();
-                                if (room.length() < 1) room = "main";
-                                DataStore.addRoom(MainActivity.this, currIP, room,
-                                        ((EditText) ad.findViewById(R.id.nickname))
+                                DataStore.addRoom(MainActivity.this,
+                                        ((EditText) ad.findViewById(R.id.ip))
+                                                .getText().toString(),
+                                        ((EditText) ad.findViewById(R.id.room))
+                                                .getText().toString(),
+                                        ((EditText) ad.findViewById(R.id.name))
                                                 .getText().toString(),
                                         ((EditText) ad.findViewById(R.id.password))
                                                 .getText().toString());
+                                mainFrag.update();
                                 dialog.dismiss();
+
                             }
                         })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        }).create().show();
+                        .setNegativeButton("Cancel", null).create().show();
                 this.mainFrag.scrollToEnd();
-                break;
-            case R.id.action_add_ip:
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.actionbar_add_ip))
-                        .setView(R.layout.dialog_add_ip)
-                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                currIP = ((EditText) ((AlertDialog) dialog).findViewById(R.id.ip))
-                                        .getText().toString();
-                                DataStore.addRoom(MainActivity.this, currIP, "main", "", "");
-                                startChatSocket(currIP);
-                                dialog.dismiss();
-                                mainFrag.update();
-                                pager.setCurrentItem(0);
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        }).create().show();
-                break;
-            case R.id.action_switch_ip:
-                final ArrayAdapter<String> ips = new ArrayAdapter<>(this,
-                        android.R.layout.select_dialog_item);
-                ips.addAll(DataStore.getIPs(MainActivity.this));
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.actionbar_switch_ip))
-                        .setAdapter(ips, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                startChatSocket(ips.getItem(which));
-                                dialog.dismiss();
-                                mainFrag.update();
-                                pager.setCurrentItem(0);
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        }).create().show();
                 break;
         }
         return true;

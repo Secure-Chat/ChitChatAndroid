@@ -50,7 +50,7 @@ public class ChatFragment extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         update();
         if (getActivity() != null && isVisibleToUser) ((MainActivity) getActivity())
-                .setActionBarTitle(((MainActivity) getActivity()).getCurrRoom());
+                .setActionBarTitle(((MainActivity) getActivity()).getCurrRoom().getRoom());
     }
 
     void update() {
@@ -60,7 +60,9 @@ public class ChatFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        messages.scrollToPosition(messageRecAdapter.getItemCount() - 1);
+                        if (messageRecAdapter.getItemCount() > 0) {
+                            messages.smoothScrollToPosition(messageRecAdapter.getItemCount() - 1);
+                        }
                     }
                 });
             }

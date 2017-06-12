@@ -85,15 +85,15 @@ class RoomsDBHelper extends SQLiteOpenHelper {
     /**
      * Changes the color for a specified room
      *
-     * @param ip    the ip of the room
-     * @param room  the room identifier
+     * @param room  the ChatRoom to change the color of
      * @param color the color to use for this room
      */
-    void updateRoomColor(String ip, String room, int color) {
+    void updateRoomColor(DataTypes.ChatRoom room, int color) {
         ContentValues newValues = new ContentValues();
         newValues.put(COLUMN_COLOR, color);
         getWritableDatabase().update(TABLE_NAME, newValues,
-                COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?", new String[]{ip, room});
+                COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?",
+                new String[]{room.getIP(), room.getRoom()});
     }
 
     /**
@@ -111,11 +111,11 @@ class RoomsDBHelper extends SQLiteOpenHelper {
     /**
      * Removes a saved room from the database
      *
-     * @param ip   the ip of the room to remove
      * @param room the room to remove
      */
-    void removeRoom(String ip, String room) {
+    void removeRoom(DataTypes.ChatRoom room) {
         getWritableDatabase().delete(TABLE_NAME,
-                COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?", new String[]{ip, room});
+                COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?",
+                new String[]{room.getIP(), room.getRoom()});
     }
 }

@@ -13,14 +13,4 @@
         android:icon="@drawable/info"
         android:title="@string/actionbar_about"
         app:showAsAction="ifRoom" />
-    <!-- Add IP -->
-    <item
-        android:id="@+id/action_add_ip"
-        android:title="@string/actionbar_add_ip"
-        app:showAsAction="never" />
-    <!-- Switch IP -->
-    <item
-        android:id="@+id/action_switch_ip"
-        android:title="@string/actionbar_switch_ip"
-        app:showAsAction="never" />
 </menu>

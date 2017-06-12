@@ -20,7 +20,7 @@ import io.github.gregoryconrad.chitchat.ui.MainActivity;
  */
 public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.MessageHolder> {
     private MainActivity activity = null;
-    private String room = null;
+    private DataTypes.ChatRoom room = null;
     private ArrayList<DataTypes.ChatMessage> messages = new ArrayList<>();
 
     public MessageRecAdapter(MainActivity activity) {
@@ -56,11 +56,11 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
      * Updates the displayed messages
      */
     public void update() {
-        if (!this.room.equals(activity.getCurrRoom())) {
+        if (!activity.getCurrRoom().equals(this.room)) {
             this.room = activity.getCurrRoom();
             this.messages = new ArrayList<>();
         }
-        update(DataStore.getMessages(activity, activity.getCurrIP(), room), messages.size());
+        update(DataStore.getMessages(activity, room), messages.size());
     }
 
     private void update(final ArrayList<DataTypes.ChatMessage> encryptedMessages, final int index) {
@@ -74,8 +74,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
                         update(encryptedMessages, index + 1);
                     } else {
                         JSEncryption.decrypt(activity, encryptedMessages.get(index).getMessage(),
-                                DataStore.getRoom(activity, activity.getCurrIP(),
-                                        activity.getCurrRoom()).getPassword(),
+                                room.getPassword(),
                                 new JSEncryption.EncryptCallback() {
                                     @Override
                                     public void run(final String txt, boolean worked) {

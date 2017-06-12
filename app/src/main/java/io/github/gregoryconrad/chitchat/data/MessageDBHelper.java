@@ -46,23 +46,21 @@ class MessageDBHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * @param ip   ip to select messages from
-     * @param room room to select messages from
+     * @param room the room to get messages from
      * @return all of the messages stored
      */
-    ArrayList<DataTypes.ChatMessage> getMessages(String ip, String room) {
+    ArrayList<DataTypes.ChatMessage> getMessages(DataTypes.ChatRoom room) {
         deleteOldMessages();
         ArrayList<DataTypes.ChatMessage> messages = new ArrayList<>();
         Cursor cursor = getReadableDatabase().rawQuery("SELECT * FROM " + TABLE_NAME, null);
         if (cursor.moveToFirst()) {
             do {
-                if (cursor.getString(cursor.getColumnIndex(COLUMN_IP)).equals(ip) &&
-                        cursor.getString(cursor.getColumnIndex(COLUMN_ROOM)).equals(room)) {
+                if (cursor.getString(cursor.getColumnIndex(COLUMN_IP)).equals(room.getIP()) &&
+                        cursor.getString(cursor.getColumnIndex(COLUMN_ROOM)).equals(room.getRoom()))
                     messages.add(new DataTypes().new ChatMessage(
                             cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
                             cursor.getString(cursor.getColumnIndex(COLUMN_MESSAGE)),
                             cursor.getInt(cursor.getColumnIndex(COLUMN_ID))));
-                }
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -73,29 +71,28 @@ class MessageDBHelper extends SQLiteOpenHelper {
     /**
      * Adds a message to the database
      *
-     * @param ip      the ip the message came from
      * @param room    the room the message came from
      * @param id      the id of the message
      * @param name    the nickname of the user who sent the message
      * @param message the actual message
      */
-    void addMessage(String ip, String room, int id, String name, String message) {
-        deleteMessage(ip, room, id);
+    void addMessage(DataTypes.ChatRoom room, int id, String name, String message) {
+        deleteMessage(room, id);
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_TIME, (int) (System.currentTimeMillis() / 1000));
-        contentValues.put(COLUMN_IP, ip);
-        contentValues.put(COLUMN_ROOM, room);
+        contentValues.put(COLUMN_IP, room.getIP());
+        contentValues.put(COLUMN_ROOM, room.getRoom());
         contentValues.put(COLUMN_ID, id);
         contentValues.put(COLUMN_NAME, name);
         contentValues.put(COLUMN_MESSAGE, message);
         getWritableDatabase().insert(TABLE_NAME, null, contentValues);
     }
 
-    void deleteMessage(String ip, String room, int id) {
+    void deleteMessage(DataTypes.ChatRoom room, int id) {
         deleteOldMessages();
         getWritableDatabase().delete(TABLE_NAME,
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=? AND " + COLUMN_ID + "=?",
-                new String[]{ip, room, String.valueOf(id)});
+                new String[]{room.getIP(), room.getRoom(), String.valueOf(id)});
     }
 
     private void deleteOldMessages() {
