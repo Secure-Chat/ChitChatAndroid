@@ -87,8 +87,6 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
                                         } else {
                                             Log.i("MessageRecAdapter",
                                                     "Failed to decrypt a message: " + txt);
-                                            Log.i("MessageRecAdapter",
-                                                    encryptedMessages.get(index).getMessage());
                                         }
                                         update(encryptedMessages, index + 1);
                                     }
