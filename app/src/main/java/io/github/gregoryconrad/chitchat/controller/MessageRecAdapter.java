@@ -65,20 +65,38 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
 
     private void update(final ArrayList<DataTypes.ChatMessage> encryptedMessages, final int index) {
         if (index >= 0 && index < encryptedMessages.size()) {
-            JSEncryption.decrypt(activity, encryptedMessages.get(index).getMessage(),
-                    DataStore.getRoom(activity, activity.getCurrIP(),
-                            activity.getCurrRoom()).getPassword(),
-                    new JSEncryption.EncryptCallback() {
-                        @Override
-                        public void run(String txt, boolean worked) {
-                            if (worked) messages.add(new DataTypes().new ChatMessage(
-                                    encryptedMessages.get(index).getName(), txt,
-                                    encryptedMessages.get(index).getId()));
-                            else Log.i("MessageRecAdapter", "Failed to decrypt a message: " + txt);
-                            update(encryptedMessages, index + 1);
-                        }
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if ("SERVER".equals(encryptedMessages.get(index).getName())) {
+                        messages.add(encryptedMessages.get(index));
+                        notifyDataSetChanged();
+                        update(encryptedMessages, index + 1);
+                    } else {
+                        JSEncryption.decrypt(activity, encryptedMessages.get(index).getMessage(),
+                                DataStore.getRoom(activity, activity.getCurrIP(),
+                                        activity.getCurrRoom()).getPassword(),
+                                new JSEncryption.EncryptCallback() {
+                                    @Override
+                                    public void run(final String txt, boolean worked) {
+                                        if (worked) {
+                                            messages.add(new DataTypes().new ChatMessage(
+                                                    encryptedMessages.get(index).getName(), txt,
+                                                    encryptedMessages.get(index).getId()));
+                                            notifyDataSetChanged();
+                                        } else {
+                                            Log.i("MessageRecAdapter",
+                                                    "Failed to decrypt a message: " + txt);
+                                            Log.i("MessageRecAdapter",
+                                                    encryptedMessages.get(index).getMessage());
+                                        }
+                                        update(encryptedMessages, index + 1);
+                                    }
+                                }
+                        );
                     }
-            );
+                }
+            });
         }
     }
 

@@ -57,7 +57,12 @@ public class ChatFragment extends Fragment {
         if (this.messageRecAdapter != null) {
             this.messageRecAdapter.update();
             if (this.messages != null) {
-                this.messages.scrollToPosition(this.messageRecAdapter.getItemCount() - 1);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        messages.scrollToPosition(messageRecAdapter.getItemCount() - 1);
+                    }
+                });
             }
         }
     }
