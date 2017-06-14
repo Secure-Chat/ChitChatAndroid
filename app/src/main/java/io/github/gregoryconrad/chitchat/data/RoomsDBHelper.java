@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * SQLite Database that holds all of the chat rooms
  */
-class RoomsDBHelper extends SQLiteOpenHelper {
+public class RoomsDBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "ROOMS.db";
     private static final String TABLE_NAME = "ROOMS";
     private static final String COLUMN_IP = "IP";
@@ -21,7 +21,7 @@ class RoomsDBHelper extends SQLiteOpenHelper {
     private static final String COLUMN_COLOR = "COLOR";
     private static final int CURRENT_VERSION = 1;
 
-    RoomsDBHelper(Context context) {
+    private RoomsDBHelper(Context context) {
         super(context, DATABASE_NAME, null, CURRENT_VERSION);
     }
 
@@ -44,7 +44,7 @@ class RoomsDBHelper extends SQLiteOpenHelper {
     /**
      * @return list of the saved chat rooms
      */
-    ArrayList<DataTypes.ChatRoom> getRooms() {
+    private ArrayList<DataTypes.ChatRoom> getRooms() {
         ArrayList<DataTypes.ChatRoom> returnVal = new ArrayList<>();
         Cursor cursor = getReadableDatabase().rawQuery("SELECT * FROM " + TABLE_NAME, null);
         if (cursor.moveToFirst()) {
@@ -69,7 +69,7 @@ class RoomsDBHelper extends SQLiteOpenHelper {
      * @param nickname the nickname to use for this room
      * @param password the password to use for this room
      */
-    void addRoom(String ip, String room, String nickname, String password) {
+    private void addRoom(String ip, String room, String nickname, String password) {
         getWritableDatabase().delete(TABLE_NAME,
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?",
                 new String[]{ip, room});
@@ -88,7 +88,7 @@ class RoomsDBHelper extends SQLiteOpenHelper {
      * @param room  the ChatRoom to change the color of
      * @param color the color to use for this room
      */
-    void updateRoomColor(DataTypes.ChatRoom room, int color) {
+    private void updateRoomColor(DataTypes.ChatRoom room, int color) {
         ContentValues newValues = new ContentValues();
         newValues.put(COLUMN_COLOR, color);
         getWritableDatabase().update(TABLE_NAME, newValues,
@@ -101,7 +101,7 @@ class RoomsDBHelper extends SQLiteOpenHelper {
      * @param room the room identifier of the room to return
      * @return the room object for the specified room
      */
-    DataTypes.ChatRoom getRoom(String ip, String room) {
+    private DataTypes.ChatRoom getRoom(String ip, String room) {
         for (DataTypes.ChatRoom curr : getRooms()) {
             if (curr.getIP().equals(ip) && curr.getRoom().equals(room)) return curr;
         }
@@ -113,9 +113,42 @@ class RoomsDBHelper extends SQLiteOpenHelper {
      *
      * @param room the room to remove
      */
-    void removeRoom(DataTypes.ChatRoom room) {
+    private void removeRoom(DataTypes.ChatRoom room) {
         getWritableDatabase().delete(TABLE_NAME,
                 COLUMN_IP + "=? AND " + COLUMN_ROOM + "=?",
                 new String[]{room.getIP(), room.getRoom()});
+    }
+
+    public static ArrayList<DataTypes.ChatRoom> getRooms(Context context) {
+        RoomsDBHelper roomsDB = new RoomsDBHelper(context);
+        ArrayList<DataTypes.ChatRoom> returnVal = roomsDB.getRooms();
+        roomsDB.close();
+        return returnVal;
+    }
+
+    public static void addRoom(Context context, String ip,
+                               String room, String nickname, String password) {
+        RoomsDBHelper roomsDB = new RoomsDBHelper(context);
+        roomsDB.addRoom(ip, room, nickname, password);
+        roomsDB.close();
+    }
+
+    public static void updateRoomColor(Context context, DataTypes.ChatRoom room, int color) {
+        RoomsDBHelper roomsDB = new RoomsDBHelper(context);
+        roomsDB.updateRoomColor(room, color);
+        roomsDB.close();
+    }
+
+    public static DataTypes.ChatRoom getRoom(Context context, String ip, String room) {
+        RoomsDBHelper roomsDB = new RoomsDBHelper(context);
+        DataTypes.ChatRoom returnVal = roomsDB.getRoom(ip, room);
+        roomsDB.close();
+        return returnVal;
+    }
+
+    public static void removeRoom(Context context, DataTypes.ChatRoom room) {
+        RoomsDBHelper roomsDB = new RoomsDBHelper(context);
+        roomsDB.removeRoom(room);
+        roomsDB.close();
     }
 }

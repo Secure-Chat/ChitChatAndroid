@@ -10,7 +10,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import io.github.gregoryconrad.chitchat.R;
-import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
 import io.github.gregoryconrad.chitchat.data.JSEncryption;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
@@ -60,7 +59,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
             this.room = activity.getCurrRoom();
             this.messages = new ArrayList<>();
         }
-        update(DataStore.getMessages(activity, room), messages.size());
+        update(this.room.getMessages(activity), messages.size());
     }
 
     private void update(final ArrayList<DataTypes.ChatMessage> encryptedMessages, final int index) {
@@ -68,30 +67,26 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if ("SERVER".equals(encryptedMessages.get(index).getName())) {
-                        messages.add(encryptedMessages.get(index));
-                        notifyDataSetChanged();
-                        update(encryptedMessages, index + 1);
-                    } else {
-                        JSEncryption.decrypt(activity, encryptedMessages.get(index).getMessage(),
-                                room.getPassword(),
-                                new JSEncryption.EncryptCallback() {
-                                    @Override
-                                    public void run(final String txt, boolean worked) {
-                                        if (worked) {
-                                            messages.add(new DataTypes().new ChatMessage(
-                                                    encryptedMessages.get(index).getName(), txt,
-                                                    encryptedMessages.get(index).getId()));
-                                            notifyDataSetChanged();
-                                        } else {
-                                            Log.i("MessageRecAdapter",
-                                                    "Failed to decrypt a message: " + txt);
-                                        }
-                                        update(encryptedMessages, index + 1);
-                                    }
+                    JSEncryption.decrypt(activity, encryptedMessages.get(index).getMessage(),
+                            room.getPassword(),
+                            new JSEncryption.EncryptCallback() {
+                                @Override
+                                public void onResult(String txt) {
+                                    messages.add(new DataTypes().new ChatMessage(
+                                            encryptedMessages.get(index).getName(), txt,
+                                            encryptedMessages.get(index).getTimestamp()));
+                                    notifyDataSetChanged();
+                                    update(encryptedMessages, index + 1);
                                 }
-                        );
-                    }
+
+                                @Override
+                                public void onError(String error) {
+                                    Log.i("MessageRecAdapter",
+                                            "Failed to decrypt a message: " + error);
+                                    update(encryptedMessages, index + 1);
+                                }
+                            }
+                    );
                 }
             });
         }

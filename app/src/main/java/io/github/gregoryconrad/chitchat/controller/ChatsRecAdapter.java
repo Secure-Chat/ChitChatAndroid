@@ -18,8 +18,8 @@ import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import java.util.ArrayList;
 
 import io.github.gregoryconrad.chitchat.R;
-import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
+import io.github.gregoryconrad.chitchat.data.RoomsDBHelper;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
 
 /**
@@ -41,7 +41,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
 
     @Override
     public void onBindViewHolder(final ChatsRecAdapter.ChatHolder holder, int position) {
-        ArrayList<DataTypes.ChatRoom> rooms = DataStore.getRooms(activity);
+        ArrayList<DataTypes.ChatRoom> rooms = RoomsDBHelper.getRooms(activity);
         holder.room.setText(rooms.get(position).getRoom());
         holder.ip.setText(rooms.get(position).getIP());
         holder.colorIndicator.setOnClickListener(new View.OnClickListener() {
@@ -50,15 +50,15 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                 ColorPickerDialogBuilder.with(activity)
                         .setTitle("Pick the chat color")
                         .wheelType(ColorPickerView.WHEEL_TYPE.CIRCLE).density(12)
-                        .initialColor(DataStore.getRoom(activity,
+                        .initialColor(RoomsDBHelper.getRoom(activity,
                                 String.valueOf(holder.ip.getText()),
                                 String.valueOf(holder.room.getText())).getColor())
                         .setPositiveButton("Change", new ColorPickerClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int selectedColor,
                                                 Integer[] allColors) {
-                                DataStore.updateRoomColor(activity,
-                                        DataStore.getRoom(activity,
+                                RoomsDBHelper.updateRoomColor(activity,
+                                        RoomsDBHelper.getRoom(activity,
                                                 String.valueOf(holder.ip.getText()),
                                                 String.valueOf(holder.room.getText())),
                                         selectedColor);
@@ -70,7 +70,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.setCurrRoom(DataStore.getRoom(activity,
+                activity.setCurrRoom(RoomsDBHelper.getRoom(activity,
                         String.valueOf(holder.ip.getText()),
                         String.valueOf(holder.room.getText())));
             }
@@ -80,7 +80,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
 
     @Override
     public int getItemCount() {
-        return (isUpdating) ? 0 : DataStore.getRooms(activity).size();
+        return (isUpdating) ? 0 : RoomsDBHelper.getRooms(activity).size();
     }
 
     /**
@@ -112,7 +112,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                     Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             Paint paint = new Paint();
-            paint.setColor(DataStore.getRoom(activity,
+            paint.setColor(RoomsDBHelper.getRoom(activity,
                     String.valueOf(ip.getText()), String.valueOf(room.getText())).getColor());
             canvas.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2,
                     bitmap.getWidth() / 2, paint);

@@ -27,9 +27,9 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 
 import io.github.gregoryconrad.chitchat.R;
-import io.github.gregoryconrad.chitchat.data.DataStore;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
 import io.github.gregoryconrad.chitchat.data.JSEncryption;
+import io.github.gregoryconrad.chitchat.data.RoomsDBHelper;
 
 public class MainActivity extends AppCompatActivity {
     private SelectiveSwipeViewPager pager = null;
@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
         //todo long click on messages and rooms
         //todo add AlarmManager (for boot) checking for new messages on all servers
-        //todo used SharedPref for saving curr ip and for notification settings
 
         this.pager = (SelectiveSwipeViewPager) findViewById(R.id.pager);
         this.pager.setPageMargin(6);
@@ -67,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if (DataStore.getRooms(this).size() < 1) new AlertDialog.Builder(this)
+        if (RoomsDBHelper.getRooms(this).size() < 1) new AlertDialog.Builder(this)
                 .setTitle("Welcome to ChitChat!")
                 .setMessage("In order to use this application, first add a chat room " +
                         "by clicking the + button at the top of the screen.")
@@ -85,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     this.send(new Gson().toJson(new DataTypes().new JSON("connect")
                             .setRoom(currRoom.getRoom())
                             .setName(currRoom.getNickname())));
+                    //TODO request messages
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -98,12 +98,25 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onMessage(final String s) {
                     DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
-                    if ("message".equals(json.getType()) &&
-                            json.getName() != null && json.getMsg() != null) {
-                        DataStore.addMessage(MainActivity.this, currRoom,
-                                json.getId(), json.getName(), json.getMsg());
-                        chatFrag.update();
-                    } else Log.i("ChatSocket", "Got nonconforming data: " + s);
+                    try {
+                        switch (json.getType()) {
+                            case "message":
+                                if (json.getTimestamp() == null || json.getName() == null ||
+                                        json.getMsg() == null) throw new Exception();
+                                currRoom.addMessage(MainActivity.this,
+                                        json.getTimestamp(), json.getName(), json.getMsg());
+                                chatFrag.update();
+                                break;
+                            case "server-message":
+                                if (json.getRoom() == null || json.getMsg() == null)
+                                    throw new Exception();
+                                //todo add directly to view
+                                break;
+                        }
+
+                    } catch (Exception e) {
+                        Log.i("ChatSocket", "Got nonconforming data: " + s);
+                    }
                 }
 
                 @Override
@@ -159,22 +172,23 @@ public class MainActivity extends AppCompatActivity {
                 this.currRoom.getPassword(),
                 new JSEncryption.EncryptCallback() {
                     @Override
-                    public void run(String txt, boolean worked) {
-                        if (worked) {
-                            try {
-                                chatSocket.send(new Gson().toJson(new DataTypes().
-                                        new JSON("message").setRoom(currRoom.getRoom()).setMsg(txt)));
-                            } catch (Exception e) {
-                                Log.e("ChatSocket", "Could not send a message: " + e.getMessage());
-                                e.printStackTrace();
-                                Toast.makeText(MainActivity.this, "Could not send your message",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(MainActivity.this, "Failed to encrypt your message",
+                    public void onResult(String txt) {
+                        try {
+                            chatSocket.send(new Gson().toJson(new DataTypes().
+                                    new JSON("message").setRoom(currRoom.getRoom()).setMsg(txt)));
+                        } catch (Exception e) {
+                            Log.e("ChatSocket", "Could not send a message: " + e.getMessage());
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this, "Could not send your message",
                                     Toast.LENGTH_SHORT).show();
-                            Log.e("MainActivity", "Failed to encrypt the message: " + txt);
                         }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(MainActivity.this, "Failed to encrypt your message",
+                                Toast.LENGTH_SHORT).show();
+                        Log.e("MainActivity", "Failed to encrypt the message: " + error);
                     }
                 });
 
@@ -230,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 AlertDialog ad = (AlertDialog) dialog;
-                                DataStore.addRoom(MainActivity.this,
+                                RoomsDBHelper.addRoom(MainActivity.this,
                                         ((EditText) ad.findViewById(R.id.ip))
                                                 .getText().toString(),
                                         ((EditText) ad.findViewById(R.id.room))

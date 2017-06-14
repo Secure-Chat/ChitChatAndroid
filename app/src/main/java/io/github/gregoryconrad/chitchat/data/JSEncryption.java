@@ -8,7 +8,8 @@ import com.evgenii.jsevaluator.interfaces.JsCallback;
 
 public class JSEncryption {
     public interface EncryptCallback {
-        void run(String txt, boolean worked);
+        void onResult(String txt);
+        void onError(String error);
     }
 
     public static void encrypt(final Activity activity, final String message,
@@ -23,7 +24,7 @@ public class JSEncryption {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                callback.run(s, true);
+                                callback.onResult(s);
                             }
                         });
                     }
@@ -33,7 +34,7 @@ public class JSEncryption {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                callback.run(s, false);
+                                callback.onError(s);
                             }
                         });
                     }
@@ -54,7 +55,7 @@ public class JSEncryption {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                callback.run(s, true);
+                                callback.onResult(s);
                             }
                         });
                     }
@@ -64,7 +65,7 @@ public class JSEncryption {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                callback.run(s, false);
+                                callback.onError(s);
                             }
                         });
                     }

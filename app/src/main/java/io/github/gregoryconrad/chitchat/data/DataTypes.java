@@ -1,6 +1,10 @@
 package io.github.gregoryconrad.chitchat.data;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
 
 public class DataTypes {
     /**
@@ -11,9 +15,9 @@ public class DataTypes {
         private String room = null;
         private String name = null;
         private String msg = null;
-        private int id = -1;
-        private int min = -1;
-        private int max = -1;
+        private String timestamp = null;
+        private String min = null;
+        private String max = null;
 
         public JSON(String type) {
             this.type = type;
@@ -35,8 +39,8 @@ public class DataTypes {
             return this.msg;
         }
 
-        public int getId() {
-            return this.id;
+        public String getTimestamp() {
+            return this.timestamp;
         }
 
         public JSON setRoom(String room) {
@@ -54,17 +58,12 @@ public class DataTypes {
             return this;
         }
 
-        public JSON setId(int id) {
-            this.id = id;
-            return this;
-        }
-
-        public JSON setMin(int min) {
+        public JSON setMin(String min) {
             this.min = min;
             return this;
         }
 
-        public JSON setMax(int max) {
+        public JSON setMax(String max) {
             this.max = max;
             return this;
         }
@@ -104,6 +103,25 @@ public class DataTypes {
         public int getColor() {
             return this.color;
         }
+
+        public ArrayList<ChatMessage> getMessages(Context context) {
+            MessageDBHelper messageDB = new MessageDBHelper(context);
+            ArrayList<DataTypes.ChatMessage> returnVal = messageDB.getMessages(this);
+            messageDB.close();
+            return returnVal;
+        }
+
+        public void addMessage(Context context, String time, String name, String message) {
+            MessageDBHelper messageDB = new MessageDBHelper(context);
+            messageDB.addMessage(this, time, name, message);
+            messageDB.close();
+        }
+
+        public void removeMessage(Context context, String time) {
+            MessageDBHelper messageDB = new MessageDBHelper(context);
+            messageDB.deleteMessage(this, time);
+            messageDB.close();
+        }
     }
 
     /**
@@ -111,12 +129,12 @@ public class DataTypes {
      */
     public class ChatMessage implements Comparable<ChatMessage> {
         private String name, message;
-        private int id;
+        private BigInteger timestamp;
 
-        public ChatMessage(String name, String message, int id) {
+        public ChatMessage(String name, String message, BigInteger timestamp) {
             this.name = name;
             this.message = message;
-            this.id = id;
+            this.timestamp = timestamp;
         }
 
         public String getName() {
@@ -127,13 +145,13 @@ public class DataTypes {
             return this.message;
         }
 
-        public int getId() {
-            return this.id;
+        public BigInteger getTimestamp() {
+            return this.timestamp;
         }
 
         @Override
         public int compareTo(@NonNull ChatMessage o) {
-            return this.id - o.id;
+            return this.timestamp.subtract(o.timestamp).intValue();
         }
     }
 }
