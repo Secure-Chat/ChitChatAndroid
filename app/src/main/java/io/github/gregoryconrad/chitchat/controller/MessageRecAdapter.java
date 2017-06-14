@@ -1,5 +1,7 @@
 package io.github.gregoryconrad.chitchat.controller;
 
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
     private MainActivity activity = null;
     private DataTypes.ChatRoom room = null;
     private ArrayList<DataTypes.ChatMessage> messages = new ArrayList<>();
+    private boolean isUpdating = false;
 
     public MessageRecAdapter(MainActivity activity) {
         this.activity = activity;
@@ -34,14 +37,24 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
     }
 
     @Override
-    public void onBindViewHolder(MessageRecAdapter.MessageHolder holder, int position) {
+    public void onBindViewHolder(final MessageRecAdapter.MessageHolder holder, int position) {
         holder.username.setText(messages.get(position).getName());
         holder.message.setText(messages.get(position).getMessage());
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                //TODO popup options and return true;
-                return false;
+                new AlertDialog.Builder(activity)
+                        .setTitle("Delete message")
+                        .setMessage("Are you sure you want to delete this message?")
+                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                room.removeMessage(activity, messages
+                                        .remove(holder.getAdapterPosition()).getTimestamp());
+                                notifyDataSetChanged();
+                                dialog.dismiss();
+                            }
+                        }).setNegativeButton("Cancel", null).create().show();
+                return true;
             }
         });
     }
@@ -55,11 +68,15 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
      * Updates the displayed messages
      */
     public void update() {
-        if (!activity.getCurrRoom().equals(this.room)) {
-            this.room = activity.getCurrRoom();
-            this.messages = new ArrayList<>();
+        if (!this.isUpdating) {
+            this.isUpdating = true;
+            if (!activity.getCurrRoom().equals(this.room)) {
+                this.room = activity.getCurrRoom();
+                this.messages = new ArrayList<>();
+            }
+            update(this.room.getMessages(activity), messages.size());
+            this.isUpdating = false;
         }
-        update(this.room.getMessages(activity), messages.size());
     }
 
     private void update(final ArrayList<DataTypes.ChatMessage> encryptedMessages, final int index) {
@@ -92,6 +109,10 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
         }
     }
 
+    public void addMessage(String name, String message) {
+        messages.add(new DataTypes().new ChatMessage(name, message, null));
+        notifyDataSetChanged();
+    }
 
     class MessageHolder extends RecyclerView.ViewHolder {
         private TextView username = null;

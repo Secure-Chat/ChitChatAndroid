@@ -68,4 +68,8 @@ public class ChatFragment extends Fragment {
             }
         }
     }
+
+    void addMessage(String name, String message) {
+        this.messageRecAdapter.addMessage(name, message);
+    }
 }

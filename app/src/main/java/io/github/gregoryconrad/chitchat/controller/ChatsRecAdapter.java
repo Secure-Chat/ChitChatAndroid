@@ -4,10 +4,12 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -73,6 +75,24 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                 activity.setCurrRoom(RoomsDBHelper.getRoom(activity,
                         String.valueOf(holder.ip.getText()),
                         String.valueOf(holder.room.getText())));
+            }
+        });
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                new AlertDialog.Builder(activity)
+                        .setTitle("Delete room")
+                        .setMessage("Are you sure you want to delete this room?")
+                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                RoomsDBHelper.removeRoom(activity, RoomsDBHelper.getRoom(activity,
+                                        String.valueOf(holder.ip.getText()),
+                                        String.valueOf(holder.room.getText())));
+                                notifyDataSetChanged();
+                                dialog.dismiss();
+                            }
+                        }).setNegativeButton("Cancel", null).create().show();
+                return true;
             }
         });
         holder.setColor();

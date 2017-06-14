@@ -25,12 +25,14 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 import io.github.gregoryconrad.chitchat.R;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
 import io.github.gregoryconrad.chitchat.data.JSEncryption;
 import io.github.gregoryconrad.chitchat.data.RoomsDBHelper;
 
+@SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity {
     private SelectiveSwipeViewPager pager = null;
     private MainFragment mainFrag = new MainFragment();
@@ -39,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     private WebSocketClient chatSocket = null;
     private ProgressDialog connectDialog = null;
 
-    @SuppressWarnings("SpellCheckingInspection") // to remove the warning for chat.etcg.pw
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         setActionBarTitle(getString(R.string.app_name));
 
-        //todo long click on messages and rooms
         //todo add AlarmManager (for boot) checking for new messages on all servers
 
         this.pager = (SelectiveSwipeViewPager) findViewById(R.id.pager);
@@ -74,78 +74,89 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startChatSocket() {
-        if (this.chatSocket != null) this.chatSocket.close();
-        if (currRoom != null) {
-            this.chatSocket = new WebSocketClient(
-                    URI.create("ws://" + currRoom.getIP() + ":6789")) {
-                @Override
-                public void onOpen(ServerHandshake serverHandshake) {
-                    Log.i("ChatSocket", "Connection to the server has been established");
-                    this.send(new Gson().toJson(new DataTypes().new JSON("connect")
-                            .setRoom(currRoom.getRoom())
-                            .setName(currRoom.getNickname())));
-                    //TODO request messages
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            chatFrag.update();
-                            connectDialog.dismiss();
-                            pager.setCurrentItem(1);
+        this.connectDialog = ProgressDialog.show(this, "Connecting...",
+                "Connecting to " + currRoom.getIP(), true);
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (chatSocket != null) chatSocket.close();
+                chatSocket = new WebSocketClient(URI.create("ws://" + currRoom.getIP() + ":6789")) {
+                    @Override
+                    public void onOpen(ServerHandshake serverHandshake) {
+                        Log.i("ChatSocket", "Connection to the server has been established");
+                        this.send(new Gson().toJson(new DataTypes().new JSON("connect")
+                                .setRoom(currRoom.getRoom())
+                                .setName(currRoom.getNickname())));
+                        ArrayList<DataTypes.ChatMessage> messages =
+                                currRoom.getMessages(MainActivity.this);
+                        if (messages.size() > 0) {
+                            this.send(new Gson().toJson(new DataTypes().new JSON("request")
+                                    .setRoom(currRoom.getRoom())
+                                    .setMin(messages.get(messages.size()).getTimestamp().toString())
+                                    .setMax(String.valueOf(System.currentTimeMillis()))));
                         }
-                    });
-                }
-
-                @Override
-                public void onMessage(final String s) {
-                    DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
-                    try {
-                        switch (json.getType()) {
-                            case "message":
-                                if (json.getTimestamp() == null || json.getName() == null ||
-                                        json.getMsg() == null) throw new Exception();
-                                currRoom.addMessage(MainActivity.this,
-                                        json.getTimestamp(), json.getName(), json.getMsg());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
                                 chatFrag.update();
-                                break;
-                            case "server-message":
-                                if (json.getRoom() == null || json.getMsg() == null)
-                                    throw new Exception();
-                                //todo add directly to view
-                                break;
-                        }
-
-                    } catch (Exception e) {
-                        Log.i("ChatSocket", "Got nonconforming data: " + s);
-                    }
-                }
-
-                @Override
-                public void onClose(int i, String s, boolean b) {
-                    Log.w("ChatSocket", "Not connected to the server");
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (connectDialog.isShowing()) {
                                 connectDialog.dismiss();
-                                Toast.makeText(MainActivity.this, "Could not connect to the server",
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(MainActivity.this, "Lost connection to the server",
+                                pager.setCurrentItem(1);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onMessage(final String s) {
+                        DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
+                        try {
+                            switch (json.getType()) {
+                                case "message":
+                                    if (json.getTimestamp() == null || json.getName() == null ||
+                                            json.getMsg() == null) throw new Exception();
+                                    currRoom.addMessage(MainActivity.this,
+                                            json.getTimestamp(), json.getName(), json.getMsg());
+                                    chatFrag.update();
+                                    break;
+                                case "server-message":
+                                    if (json.getRoom() == null || json.getMsg() == null)
+                                        throw new Exception();
+                                    chatFrag.addMessage("SERVER", json.getMsg());
+                                    break;
+                            }
+
+                        } catch (Exception e) {
+                            Log.i("ChatSocket", "Got nonconforming data: " + s);
+                        }
+                    }
+
+                    @Override
+                    public void onClose(int i, String s, boolean b) {
+                        Log.w("ChatSocket", "Not connected to the server");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (connectDialog.isShowing()) {
+                                    connectDialog.dismiss();
+                                    Toast.makeText(MainActivity.this,
+                                            "Could not connect to the server",
+                                            Toast.LENGTH_SHORT).show();
+                                } else Toast.makeText(MainActivity.this,
+                                        "Lost connection to the server",
                                         Toast.LENGTH_SHORT).show();
                                 pager.setCurrentItem(0);
                             }
-                        }
-                    });
-                }
+                        });
+                    }
 
-                @Override
-                public void onError(Exception e) {
-                    Log.e("ChatSocket", "Encountered error " + e.getMessage());
-                    e.printStackTrace();
-                }
-            };
-            this.chatSocket.connect();
-        }
+                    @Override
+                    public void onError(Exception e) {
+                        Log.e("ChatSocket", "Encountered error " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                };
+                chatSocket.connect();
+            }
+        }, 350);
     }
 
     @SuppressWarnings("unused")
@@ -156,14 +167,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("unused")
     public void setCurrRoom(DataTypes.ChatRoom room) {
         this.currRoom = room;
-        this.connectDialog = ProgressDialog.show(this, "Connecting...",
-                "Connecting to " + room.getIP(), true);
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startChatSocket();
-            }
-        }, 500);
+        startChatSocket();
     }
 
     @SuppressWarnings("unused")
@@ -200,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
      * @param title The title to set the ActionBar
      * @return true if the text changed, false otherwise
      */
-    @SuppressWarnings({"ConstantConditions", "deprecation"})
+    @SuppressWarnings("ConstantConditions")
     public boolean setActionBarTitle(String title) {
         try {
             getSupportActionBar().setTitle(Html.fromHtml("<font color=\"#" +
@@ -235,7 +239,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_about:
-                Toast.makeText(this, "About is to come", Toast.LENGTH_SHORT).show();
+                new AlertDialog.Builder(this).setTitle("About")
+                        .setMessage("This dialog is under construction")
+                        .setPositiveButton("Close", null).create().show();
                 break;
             case R.id.action_add:
                 new AlertDialog.Builder(this)

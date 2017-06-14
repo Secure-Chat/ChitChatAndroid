@@ -117,9 +117,9 @@ public class DataTypes {
             messageDB.close();
         }
 
-        public void removeMessage(Context context, String time) {
+        public void removeMessage(Context context, BigInteger time) {
             MessageDBHelper messageDB = new MessageDBHelper(context);
-            messageDB.deleteMessage(this, time);
+            messageDB.deleteMessage(this, time.toString());
             messageDB.close();
         }
     }
