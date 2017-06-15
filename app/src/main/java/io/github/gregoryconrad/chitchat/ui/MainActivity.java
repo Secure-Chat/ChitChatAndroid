@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.evgenii.jsevaluator.interfaces.JsCallback;
 import com.google.gson.Gson;
 
 import org.java_websocket.client.WebSocketClient;
@@ -92,7 +93,8 @@ public class MainActivity extends AppCompatActivity {
                         if (messages.size() > 0) {
                             this.send(new Gson().toJson(new DataTypes().new JSON("request")
                                     .setRoom(currRoom.getRoom())
-                                    .setMin(messages.get(messages.size()).getTimestamp().toString())
+                                    .setMin(messages.get(messages.size() - 1)
+                                            .getTimestamp().toString())
                                     .setMax(String.valueOf(System.currentTimeMillis()))));
                         }
                         runOnUiThread(new Runnable() {
@@ -107,20 +109,41 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onMessage(final String s) {
-                        DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
+                        final DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
                         try {
                             switch (json.getType()) {
                                 case "message":
                                     if (json.getTimestamp() == null || json.getName() == null ||
                                             json.getMsg() == null) throw new Exception();
-                                    currRoom.addMessage(MainActivity.this,
-                                            json.getTimestamp(), json.getName(), json.getMsg());
-                                    chatFrag.update();
+                                    JSEncryption.decrypt(MainActivity.this, json.getMsg(),
+                                            currRoom.getPassword(),
+                                            new JsCallback() {
+                                        @Override
+                                        public void onResult(String txt) {
+                                            currRoom.addMessage(MainActivity.this,
+                                                    json.getTimestamp(), json.getName(), txt);
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    chatFrag.update();
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String error) {
+                                            Log.i("MainActivity",
+                                                    "Failed to decrypt a message: " + error);
+                                        }
+                                    });
                                     break;
                                 case "server-message":
                                     if (json.getRoom() == null || json.getMsg() == null)
                                         throw new Exception();
-                                    chatFrag.addMessage("SERVER", json.getMsg());
+                                    new AlertDialog.Builder(MainActivity.this)
+                                            .setTitle("Message from the server")
+                                            .setMessage(json.getMsg())
+                                            .setPositiveButton("Ok", null).create().show();
                                     break;
                             }
 
@@ -150,8 +173,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Exception e) {
-                        Log.e("ChatSocket", "Encountered error " + e.getMessage());
-                        e.printStackTrace();
+                        Log.e("ChatSocket", "Encountered error " + e.getMessage(), e);
                     }
                 };
                 chatSocket.connect();
@@ -174,25 +196,35 @@ public class MainActivity extends AppCompatActivity {
     public void sendMessage(String message) {
         JSEncryption.encrypt(this, message,
                 this.currRoom.getPassword(),
-                new JSEncryption.EncryptCallback() {
+                new JsCallback() {
                     @Override
                     public void onResult(String txt) {
                         try {
                             chatSocket.send(new Gson().toJson(new DataTypes().
                                     new JSON("message").setRoom(currRoom.getRoom()).setMsg(txt)));
                         } catch (Exception e) {
-                            Log.e("ChatSocket", "Could not send a message: " + e.getMessage());
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Could not send your message",
-                                    Toast.LENGTH_SHORT).show();
+                            Log.e("ChatSocket", "Could not send a message: " + e.getMessage(), e);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this,
+                                            "Could not send your message",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
                     }
 
                     @Override
                     public void onError(String error) {
-                        Toast.makeText(MainActivity.this, "Failed to encrypt your message",
-                                Toast.LENGTH_SHORT).show();
                         Log.e("MainActivity", "Failed to encrypt the message: " + error);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Failed to encrypt your message",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 });
 

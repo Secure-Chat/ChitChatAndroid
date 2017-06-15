@@ -7,70 +7,24 @@ import com.evgenii.jsevaluator.interfaces.JsCallback;
 
 
 public class JSEncryption {
-    public interface EncryptCallback {
-        void onResult(String txt);
-        void onError(String error);
-    }
-
     public static void encrypt(final Activity activity, final String message,
-                               final String password, final EncryptCallback callback) {
+                               final String password, final JsCallback callback) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 final JsEvaluator jsEvaluator = new JsEvaluator(activity);
-                jsEvaluator.callFunction(JS_AES, new JsCallback() {
-                    @Override
-                    public void onResult(final String s) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                callback.onResult(s);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(final String s) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                callback.onError(s);
-                            }
-                        });
-                    }
-                }, "sjcl.encrypt", password, message);
+                jsEvaluator.callFunction(JS_AES, callback, "sjcl.encrypt", password, message);
             }
         });
     }
 
     public static void decrypt(final Activity activity, final String message,
-                               final String password, final EncryptCallback callback) {
+                               final String password, final JsCallback callback) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 final JsEvaluator jsEvaluator = new JsEvaluator(activity);
-                jsEvaluator.callFunction(JS_AES, new JsCallback() {
-                    @Override
-                    public void onResult(final String s) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                callback.onResult(s);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(final String s) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                callback.onError(s);
-                            }
-                        });
-                    }
-                }, "sjcl.decrypt", password, message);
-
+                jsEvaluator.callFunction(JS_AES, callback, "sjcl.decrypt", password, message);
             }
         });
     }
