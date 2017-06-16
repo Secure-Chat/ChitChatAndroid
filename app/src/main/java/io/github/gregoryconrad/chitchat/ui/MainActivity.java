@@ -120,24 +120,24 @@ public class MainActivity extends AppCompatActivity {
                                     JSEncryption.decrypt(MainActivity.this, json.getMsg(),
                                             currRoom.getPassword(),
                                             new JsCallback() {
-                                        @Override
-                                        public void onResult(String txt) {
-                                            currRoom.addMessage(MainActivity.this,
-                                                    json.getTimestamp(), json.getName(), txt);
-                                            runOnUiThread(new Runnable() {
                                                 @Override
-                                                public void run() {
-                                                    chatFrag.update();
+                                                public void onResult(String txt) {
+                                                    currRoom.addMessage(MainActivity.this,
+                                                            json.getTimestamp(), json.getName(), txt);
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            chatFrag.update();
+                                                        }
+                                                    });
+                                                }
+
+                                                @Override
+                                                public void onError(String error) {
+                                                    Log.i("MainActivity",
+                                                            "Failed to decrypt a message: " + error);
                                                 }
                                             });
-                                        }
-
-                                        @Override
-                                        public void onError(String error) {
-                                            Log.i("MainActivity",
-                                                    "Failed to decrypt a message: " + error);
-                                        }
-                                    });
                                     break;
                                 case "server-message":
                                     if (json.getRoom() == null || json.getMsg() == null)
@@ -273,16 +273,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_about:
-                try {
-                    WebView aboutView = new WebView(this);
-                    aboutView.loadUrl("file:///android_asset/about.html");
-                    new AlertDialog.Builder(this).setView(aboutView)
-                            .setPositiveButton("Close", null).create().show();
-                } catch (Exception e) {
-                    new AlertDialog.Builder(this).setTitle("About")
-                            .setMessage(Html.fromHtml("Failed to load the about window"))
-                            .setPositiveButton("Close", null).create().show();
-                }
+                WebView aboutView = new WebView(this);
+                aboutView.loadUrl("file:///android_asset/about.html");
+                new AlertDialog.Builder(this).setView(aboutView)
+                        .setPositiveButton("Close", null).create().show();
                 break;
             case R.id.action_add:
                 new AlertDialog.Builder(this)
