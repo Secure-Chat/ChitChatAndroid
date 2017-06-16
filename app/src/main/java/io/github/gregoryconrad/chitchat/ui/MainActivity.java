@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -25,6 +26,7 @@ import com.google.gson.Gson;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 
@@ -271,9 +273,16 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_about:
-                new AlertDialog.Builder(this).setTitle("About")
-                        .setMessage("This dialog is under construction")
-                        .setPositiveButton("Close", null).create().show();
+                try {
+                    WebView aboutView = new WebView(this);
+                    aboutView.loadUrl("file:///android_asset/about.html");
+                    new AlertDialog.Builder(this).setView(aboutView)
+                            .setPositiveButton("Close", null).create().show();
+                } catch (Exception e) {
+                    new AlertDialog.Builder(this).setTitle("About")
+                            .setMessage(Html.fromHtml("Failed to load the about window"))
+                            .setPositiveButton("Close", null).create().show();
+                }
                 break;
             case R.id.action_add:
                 new AlertDialog.Builder(this)
