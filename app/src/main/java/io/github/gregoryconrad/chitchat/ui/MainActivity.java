@@ -26,7 +26,6 @@ import com.google.gson.Gson;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 

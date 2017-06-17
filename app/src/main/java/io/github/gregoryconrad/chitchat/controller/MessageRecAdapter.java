@@ -1,14 +1,22 @@
 package io.github.gregoryconrad.chitchat.controller;
 
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.security.MessageDigest;
+
 import io.github.gregoryconrad.chitchat.R;
+import io.github.gregoryconrad.chitchat.data.RoomsDBHelper;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
 
 /**
@@ -29,10 +37,11 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
 
     @Override
     public void onBindViewHolder(final MessageRecAdapter.MessageHolder holder, int position) {
-        holder.username.setText(activity.getCurrRoom()
+        holder.name.setText(activity.getCurrRoom()
                 .getMessages(activity).get(position).getName());
         holder.message.setText(activity.getCurrRoom()
                 .getMessages(activity).get(position).getMessage());
+        holder.setColor();
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -67,13 +76,50 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
     }
 
     class MessageHolder extends RecyclerView.ViewHolder {
-        private TextView username = null;
+        private ImageView colorIndicator = null;
+        private TextView name = null;
         private TextView message = null;
 
         MessageHolder(View itemView) {
             super(itemView);
-            this.username = itemView.findViewById(R.id.username);
+            this.colorIndicator = itemView.findViewById(R.id.color_indicator);
+            this.name = itemView.findViewById(R.id.name);
             this.message = itemView.findViewById(R.id.message);
+        }
+
+        private void setColor() {
+            if (name != null) {
+                try {
+                    Bitmap bitmap = Bitmap.createBitmap(
+                            activity.getResources().getDimensionPixelSize(
+                                    R.dimen.message_color_width),
+                            activity.getResources().getDimensionPixelSize(
+                                    R.dimen.message_item_height),
+                            Bitmap.Config.ARGB_8888);
+                    byte[] nameDigest = MessageDigest.getInstance("MD5")
+                            .digest(name.getText().toString().getBytes("UTF-8"));
+                    int r = 0, g = 0, b = 0, color = 0xFF;
+                    int third = nameDigest.length / 3;
+                    for (int i = 0; i < nameDigest.length + 1; ++i) {
+                        if (i % third == 0) {
+                            color <<= 8;
+                            if (i == third) color += r;
+                            else if (i == third * 2) color += g;
+                            else {
+                                color += b;
+                                break;
+                            }
+                        }
+                        if (i < third) r += nameDigest[i];
+                        else if (i < 2 * third) g += nameDigest[i];
+                        else b += nameDigest[i];
+                    }
+                    bitmap.eraseColor(color);
+                    this.colorIndicator.setImageBitmap(bitmap);
+                } catch (Exception e) {
+                    Log.e("MessageRecAdapter", "Failed to change a message color", e);
+                }
+            }
         }
     }
 }

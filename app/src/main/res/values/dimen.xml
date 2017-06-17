@@ -3,6 +3,8 @@
     <dimen name="text_header">20sp</dimen>
     <dimen name="padding_regular">6dp</dimen>
     <dimen name="padding_large">10dp</dimen>
-    <dimen name="rec_view_height">72dp</dimen>
     <dimen name="circle_diameter">35dp</dimen>
+    <dimen name="room_item_height">72dp</dimen>
+    <dimen name="message_color_width">10dp</dimen>
+    <dimen name="message_item_height">60dp</dimen>
 </resources>

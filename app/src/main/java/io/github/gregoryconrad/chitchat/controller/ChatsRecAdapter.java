@@ -9,7 +9,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -38,7 +37,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
     @Override
     public ChatsRecAdapter.ChatHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new ChatsRecAdapter.ChatHolder(LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.chat_item, parent, false));
+                .inflate(R.layout.room_item, parent, false));
     }
 
     @Override

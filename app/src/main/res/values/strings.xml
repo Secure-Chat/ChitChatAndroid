@@ -9,7 +9,6 @@
     <!-- ChatFragment -->
     <string name="chat_send">Send</string>
     <string name="chat_message_hint">Type a message…</string>
-    <string name="chat_color">Color</string>
 
     <!-- Login Dialog -->
     <string name="add_ip">IP of server</string>
