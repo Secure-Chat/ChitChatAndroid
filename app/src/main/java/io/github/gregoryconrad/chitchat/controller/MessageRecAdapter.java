@@ -1,22 +1,17 @@
 package io.github.gregoryconrad.chitchat.controller;
 
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.security.MessageDigest;
 
 import io.github.gregoryconrad.chitchat.R;
-import io.github.gregoryconrad.chitchat.data.RoomsDBHelper;
 import io.github.gregoryconrad.chitchat.ui.MainActivity;
 
 /**
@@ -76,7 +71,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
     }
 
     class MessageHolder extends RecyclerView.ViewHolder {
-        private ImageView colorIndicator = null;
+        private View colorIndicator = null;
         private TextView name = null;
         private TextView message = null;
 
@@ -90,12 +85,6 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
         private void setColor() {
             if (name != null) {
                 try {
-                    Bitmap bitmap = Bitmap.createBitmap(
-                            activity.getResources().getDimensionPixelSize(
-                                    R.dimen.message_color_width),
-                            activity.getResources().getDimensionPixelSize(
-                                    R.dimen.message_item_height),
-                            Bitmap.Config.ARGB_8888);
                     byte[] nameDigest = MessageDigest.getInstance("MD5")
                             .digest(name.getText().toString().getBytes("UTF-8"));
                     int r = 0, g = 0, b = 0, color = 0xFF;
@@ -114,8 +103,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
                         else if (i < 2 * third) g += nameDigest[i];
                         else b += nameDigest[i];
                     }
-                    bitmap.eraseColor(color);
-                    this.colorIndicator.setImageBitmap(bitmap);
+                    this.colorIndicator.setBackgroundColor(color);
                 } catch (Exception e) {
                     Log.e("MessageRecAdapter", "Failed to change a message color", e);
                 }

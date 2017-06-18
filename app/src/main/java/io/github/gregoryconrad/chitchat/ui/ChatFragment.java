@@ -53,7 +53,7 @@ public class ChatFragment extends Fragment {
                 .setActionBarTitle(((MainActivity) getActivity()).getCurrRoom().getRoom());
     }
 
-    void update() {
+    public void update() {
         if (this.messageRecAdapter != null) {
             this.messageRecAdapter.update();
             if (this.messages != null) { //fixme

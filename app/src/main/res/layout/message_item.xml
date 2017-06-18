@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/message_item_height"
+    android:layout_height="wrap_content"
+    android:gravity="center"
     android:orientation="horizontal"
     android:padding="@dimen/padding_regular">
 
-    <ImageView
+    <View
         android:id="@+id/color_indicator"
-        android:layout_width="@dimen/message_color_width"
+        android:layout_width="6dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="@dimen/padding_regular"
         android:layout_marginRight="@dimen/padding_regular"
-        android:contentDescription="@null" />
+        android:background="@android:color/white"/>
 
     <LinearLayout
         android:layout_width="match_parent"

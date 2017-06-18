@@ -40,8 +40,11 @@ public class MainFragment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         update();
-        if (getActivity() != null && isVisibleToUser) ((MainActivity) getActivity())
-                .setActionBarTitle(getString(R.string.app_name));
+        if (getActivity() != null && isVisibleToUser) {
+            ((MainActivity) getActivity()).setActionBarTitle(getString(R.string.app_name));
+            ((MainActivity) getActivity()).chatSocket.close();
+            ((MainActivity) getActivity()).chatSocket = null;
+        }
     }
 
     public void update() {

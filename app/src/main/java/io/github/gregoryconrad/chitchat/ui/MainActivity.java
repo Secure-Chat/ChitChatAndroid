@@ -23,25 +23,20 @@ import android.widget.Toast;
 import com.evgenii.jsevaluator.interfaces.JsCallback;
 import com.google.gson.Gson;
 
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-
-import java.net.URI;
-import java.util.ArrayList;
-
 import io.github.gregoryconrad.chitchat.R;
+import io.github.gregoryconrad.chitchat.background.ChatSocket;
 import io.github.gregoryconrad.chitchat.data.DataTypes;
 import io.github.gregoryconrad.chitchat.data.JSEncryption;
 import io.github.gregoryconrad.chitchat.data.RoomsDBHelper;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity {
-    private SelectiveSwipeViewPager pager = null;
+    public ChatSocket chatSocket = null;
+    public ProgressDialog connectDialog = null;
+    public SelectiveSwipeViewPager pager = null;
+    public ChatFragment chatFrag = new ChatFragment();
     private MainFragment mainFrag = new MainFragment();
-    private ChatFragment chatFrag = new ChatFragment();
     private DataTypes.ChatRoom currRoom = null;
-    private WebSocketClient chatSocket = null;
-    private ProgressDialog connectDialog = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,103 +76,7 @@ public class MainActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (chatSocket != null) chatSocket.close();
-                chatSocket = new WebSocketClient(URI.create("ws://" + currRoom.getIP() + ":6789")) {
-                    @Override
-                    public void onOpen(ServerHandshake serverHandshake) {
-                        Log.i("ChatSocket", "Connection to the server has been established");
-                        this.send(new Gson().toJson(new DataTypes().new JSON("connect")
-                                .setRoom(currRoom.getRoom())
-                                .setName(currRoom.getNickname())));
-                        ArrayList<DataTypes.ChatMessage> messages =
-                                currRoom.getMessages(MainActivity.this);
-                        if (messages.size() > 0) {
-                            this.send(new Gson().toJson(new DataTypes().new JSON("request")
-                                    .setRoom(currRoom.getRoom())
-                                    .setMin(messages.get(messages.size() - 1)
-                                            .getTimestamp().toString())
-                                    .setMax(String.valueOf(System.currentTimeMillis()))));
-                        }
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                chatFrag.update();
-                                connectDialog.dismiss();
-                                pager.setCurrentItem(1);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onMessage(final String s) {
-                        final DataTypes.JSON json = new Gson().fromJson(s, DataTypes.JSON.class);
-                        try {
-                            switch (json.getType()) {
-                                case "message":
-                                    if (json.getTimestamp() == null || json.getName() == null ||
-                                            json.getMsg() == null) throw new Exception();
-                                    JSEncryption.decrypt(MainActivity.this, json.getMsg(),
-                                            currRoom.getPassword(),
-                                            new JsCallback() {
-                                                @Override
-                                                public void onResult(String txt) {
-                                                    currRoom.addMessage(MainActivity.this,
-                                                            json.getTimestamp(), json.getName(), txt);
-                                                    runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            chatFrag.update();
-                                                        }
-                                                    });
-                                                }
-
-                                                @Override
-                                                public void onError(String error) {
-                                                    Log.i("MainActivity",
-                                                            "Failed to decrypt a message: " + error);
-                                                }
-                                            });
-                                    break;
-                                case "server-message":
-                                    if (json.getRoom() == null || json.getMsg() == null)
-                                        throw new Exception();
-                                    new AlertDialog.Builder(MainActivity.this)
-                                            .setTitle("Message from the server")
-                                            .setMessage(json.getMsg())
-                                            .setPositiveButton("Ok", null).create().show();
-                                    break;
-                            }
-
-                        } catch (Exception e) {
-                            Log.i("ChatSocket", "Got nonconforming data: " + s);
-                        }
-                    }
-
-                    @Override
-                    public void onClose(int i, String s, boolean b) {
-                        Log.w("ChatSocket", "Not connected to the server");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (connectDialog.isShowing()) {
-                                    connectDialog.dismiss();
-                                    Toast.makeText(MainActivity.this,
-                                            "Could not connect to the server",
-                                            Toast.LENGTH_SHORT).show();
-                                } else Toast.makeText(MainActivity.this,
-                                        "Lost connection to the server",
-                                        Toast.LENGTH_SHORT).show();
-                                pager.setCurrentItem(0);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        Log.e("ChatSocket", "Encountered error " + e.getMessage(), e);
-                    }
-                };
-                chatSocket.connect();
+                chatSocket = new ChatSocket(MainActivity.this);
             }
         }, 350);
     }
@@ -252,9 +151,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (this.pager.getCurrentItem() != 0) {
-            this.pager.setCurrentItem(0);
-        } else moveTaskToBack(true);
+        if (this.pager.getCurrentItem() != 0) this.pager.setCurrentItem(0);
+        else super.onBackPressed();
     }
 
     /*
