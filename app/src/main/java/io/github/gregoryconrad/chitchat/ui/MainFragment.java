@@ -54,6 +54,6 @@ public class MainFragment extends Fragment {
     }
 
     public void scrollToEnd() {
-        this.chats.scrollToPosition(chatsRecAdapter.getItemCount() - 1); //fixme
+        this.chats.scrollToPosition(chatsRecAdapter.getItemCount() - 1);
     }
 }

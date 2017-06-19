@@ -94,7 +94,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
                             color <<= 8;
                             if (i == third) color += r;
                             else if (i == third * 2) color += g;
-                            else {
+                            else if (i == third * 3) {
                                 color += b;
                                 break;
                             }

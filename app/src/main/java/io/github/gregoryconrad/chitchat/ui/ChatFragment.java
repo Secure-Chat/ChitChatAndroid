@@ -56,7 +56,7 @@ public class ChatFragment extends Fragment {
     public void update() {
         if (this.messageRecAdapter != null) {
             this.messageRecAdapter.update();
-            if (this.messages != null) { //fixme
+            if (this.messages != null) {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
