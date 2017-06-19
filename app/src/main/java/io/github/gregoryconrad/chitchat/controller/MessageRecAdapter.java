@@ -84,29 +84,32 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
 
         private void setColor() {
             if (name != null) {
-                try {
-                    byte[] nameDigest = MessageDigest.getInstance("MD5")
-                            .digest(name.getText().toString().getBytes("UTF-8"));
-                    int r = 0, g = 0, b = 0, color = 0xFF;
-                    int third = nameDigest.length / 3;
-                    for (int i = 0; i < nameDigest.length + 1; ++i) {
-                        if (i % third == 0) {
-                            color <<= 8;
-                            if (i == third) color += r;
-                            else if (i == third * 2) color += g;
-                            else if (i == third * 3) {
-                                color += b;
-                                break;
-                            }
-                        }
-                        if (i < third) r += nameDigest[i];
-                        else if (i < 2 * third) g += nameDigest[i];
-                        else b += nameDigest[i];
+                this.colorIndicator.setBackgroundColor(stringToColor(name.getText().toString()));
+            }
+        }
+
+        /**
+         * Converts a given String to a somewhat unique color
+         * In essence, this method hashes a String to a color
+         * @param str the String to create a color for
+         * @return the int representation of the color (with a leading 0xFF)
+         */
+        private int stringToColor(String str) {
+            byte[] nameDigest;
+            try {
+                nameDigest = MessageDigest.getInstance("MD5").digest(str.getBytes("UTF-8"));
+                int currColor = 0xFF, color = 0; //currColor represents either r, g, or b
+                for (int i = 0; i < nameDigest.length; ++i) {
+                    if (i % (nameDigest.length / 3) == 0) {
+                        color <<= 8;
+                        color += currColor & 0xFF;
+                        currColor = 0;
                     }
-                    this.colorIndicator.setBackgroundColor(color);
-                } catch (Exception e) {
-                    Log.e("MessageRecAdapter", "Failed to change a message color", e);
+                    currColor += nameDigest[i];
                 }
+                return color;
+            } catch(Exception e) {
+                return 0xFF000000; //return black on fail, which should never happen
             }
         }
     }
