@@ -10,10 +10,27 @@
     <string name="chat_send">Send</string>
     <string name="chat_message_hint">Type a message…</string>
 
-    <!-- Login Dialog -->
+    <!-- Room Dialog -->
+    <string name="add_title">Add a room</string>
     <string name="add_ip">IP of server</string>
     <string name="add_ip_hint">chat.etcg.pw</string>
     <string name="add_room">Chat Room</string>
     <string name="add_name">Nickname</string>
     <string name="add_password">Password</string>
+
+    <!-- Help Stuff -->
+    <string name="welcome_title">Welcome to ChitChat!</string>
+    <string name="welcome_message">
+        In order to use this application, first add a chat room by clicking the + button
+        at the top of the screen.
+    </string>
+    <string name="add_help_title">Adding a room</string>
+    <string name="after_add_help_title">Almost Done!</string>
+
+    <!-- Buttons -->
+    <string name="button_ok">OK</string>
+    <string name="button_add">Add</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_edit">Edit</string>
 </resources>

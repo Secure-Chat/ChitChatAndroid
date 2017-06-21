@@ -44,16 +44,14 @@ public class MainFragment extends Fragment {
             ((MainActivity) getActivity()).setActionBarTitle(getString(R.string.app_name));
             ((MainActivity) getActivity()).chatSocket.close();
             ((MainActivity) getActivity()).chatSocket = null;
+            ((MainActivity) getActivity()).setCurrRoom(null);
         }
     }
 
     public void update() {
         if (this.chatsRecAdapter != null) {
             chatsRecAdapter.update();
+            this.chats.scrollToPosition(chatsRecAdapter.getItemCount() - 1);
         }
-    }
-
-    public void scrollToEnd() {
-        this.chats.scrollToPosition(chatsRecAdapter.getItemCount() - 1);
     }
 }

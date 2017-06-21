@@ -65,7 +65,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                                         selectedColor);
                                 holder.setColor();
                             }
-                        }).setNegativeButton("Cancel", null).noSliders().build().show();
+                        }).setNegativeButton(R.string.button_cancel, null).noSliders().build().show();
             }
         });
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -82,7 +82,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                 new AlertDialog.Builder(activity)
                         .setTitle("Delete room")
                         .setMessage("Are you sure you want to delete this room?")
-                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                        .setPositiveButton(R.string.button_delete, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 RoomsDBHelper.removeRoom(activity, RoomsDBHelper.getRoom(activity,
                                         String.valueOf(holder.ip.getText()),
@@ -90,7 +90,7 @@ public class ChatsRecAdapter extends RecyclerView.Adapter<ChatsRecAdapter.ChatHo
                                 notifyDataSetChanged();
                                 dialog.dismiss();
                             }
-                        }).setNegativeButton("Cancel", null).create().show();
+                        }).setNegativeButton(R.string.button_cancel, null).create().show();
                 return true;
             }
         });

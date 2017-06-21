@@ -3,7 +3,6 @@ package io.github.gregoryconrad.chitchat.controller;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +42,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
                 new AlertDialog.Builder(activity)
                         .setTitle("Delete message")
                         .setMessage("Are you sure you want to delete this message?")
-                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                        .setPositiveButton(R.string.button_delete, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 activity.getCurrRoom().removeMessage(activity,
                                         activity.getCurrRoom().getMessages(activity)
@@ -51,7 +50,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
                                 notifyDataSetChanged();
                                 dialog.dismiss();
                             }
-                        }).setNegativeButton("Cancel", null).create().show();
+                        }).setNegativeButton(R.string.button_cancel, null).create().show();
                 return true;
             }
         });
@@ -67,7 +66,7 @@ public class MessageRecAdapter extends RecyclerView.Adapter<MessageRecAdapter.Me
      * Updates the displayed messages
      */
     public void update() {
-        if (getItemCount() > 0) notifyItemRangeChanged(0, getItemCount());
+        notifyDataSetChanged();//if (getItemCount() > 0) notifyItemRangeChanged(0, getItemCount());
     }
 
     class MessageHolder extends RecyclerView.ViewHolder {

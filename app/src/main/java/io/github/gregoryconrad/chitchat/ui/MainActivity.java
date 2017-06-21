@@ -64,9 +64,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         if (RoomsDBHelper.getRooms(this).size() < 1) new AlertDialog.Builder(this)
-                .setTitle("Welcome to ChitChat!")
-                .setMessage("In order to use this application, first add a chat room " +
-                        "by clicking the + button at the top of the screen.")
+                .setTitle(R.string.welcome_title)
+                .setMessage(R.string.welcome_message)
                 .setPositiveButton("Ok", null).create().show();
     }
 
@@ -89,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("unused")
     public void setCurrRoom(DataTypes.ChatRoom room) {
         this.currRoom = room;
-        startChatSocket();
+        if (this.currRoom == null) chatFrag.update();
+        else startChatSocket();
     }
 
     @SuppressWarnings("unused")
@@ -173,13 +173,13 @@ public class MainActivity extends AppCompatActivity {
                 WebView aboutView = new WebView(this);
                 aboutView.loadUrl("file:///android_asset/about.html");
                 new AlertDialog.Builder(this).setView(aboutView)
-                        .setPositiveButton("Close", null).create().show();
+                        .setPositiveButton(R.string.button_ok, null).create().show();
                 break;
             case R.id.action_add:
                 new AlertDialog.Builder(this)
-                        .setTitle("Add a room")
+                        .setTitle(R.string.add_title)
                         .setView(R.layout.dialog_login)
-                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                        .setPositiveButton(R.string.button_add, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 AlertDialog ad = (AlertDialog) dialog;
                                 RoomsDBHelper.addRoom(MainActivity.this,
@@ -193,11 +193,41 @@ public class MainActivity extends AppCompatActivity {
                                                 .getText().toString());
                                 mainFrag.update();
                                 dialog.dismiss();
-
+                                if (RoomsDBHelper.getRooms(MainActivity.this).size() == 1) {
+                                    String helpHtml = "<p>Failed to load the help information</p>";
+                                    try {
+                                        byte[] allBytes = new byte[1000000], htmlBytes =
+                                                new byte[getAssets().open("after_add_help.html")
+                                                        .read(allBytes)];
+                                        System.arraycopy(allBytes, 0,
+                                                htmlBytes, 0, htmlBytes.length);
+                                        helpHtml = new String(htmlBytes);
+                                    } catch (Exception e) {
+                                        Log.e("MainActivity", "Could not load after add help html");
+                                    }
+                                    new AlertDialog.Builder(MainActivity.this)
+                                            .setTitle(R.string.after_add_help_title)
+                                            .setMessage(Html.fromHtml(helpHtml))
+                                            .setPositiveButton(R.string.button_ok, null)
+                                            .create().show();
+                                }
                             }
                         })
-                        .setNegativeButton("Cancel", null).create().show();
-                this.mainFrag.scrollToEnd();
+                        .setNegativeButton(R.string.button_cancel, null).create().show();
+                if (RoomsDBHelper.getRooms(this).size() < 1) {
+                    String helpHtml = "<p>Failed to load the help information</p>";
+                    try {
+                        byte[] allBytes = new byte[1000000], htmlBytes =
+                                new byte[getAssets().open("add_room_help.html").read(allBytes)];
+                        System.arraycopy(allBytes, 0, htmlBytes, 0, htmlBytes.length);
+                        helpHtml = new String(htmlBytes);
+                    } catch (Exception e) {
+                        Log.e("MainActivity", "Could not load adding room help html");
+                    }
+                    new AlertDialog.Builder(this).setTitle(R.string.add_help_title)
+                            .setMessage(Html.fromHtml(helpHtml))
+                            .setPositiveButton(R.string.button_ok, null).create().show();
+                }
                 break;
         }
         return true;
